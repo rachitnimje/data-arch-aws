@@ -58,7 +58,7 @@ export async function authenticateUser(username: string, password: string) {
     console.log(`Attempting to authenticate user: ${username}`)
     
     // Find the user by username
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { username }
     })
 
