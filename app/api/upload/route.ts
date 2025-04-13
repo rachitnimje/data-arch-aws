@@ -1,8 +1,8 @@
-// app/api/upload/route.ts
 import { type NextRequest, NextResponse } from "next/server"
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3"
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+import { uploadToS3 } from "@/lib/s3"
 
+// POST api/upload
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -14,39 +14,10 @@ export async function POST(request: NextRequest) {
 
     const fileBuffer = Buffer.from(await file.arrayBuffer())
     const uniqueFileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`
+    
+    await uploadToS3(fileBuffer, uniqueFileName, file.type)
 
-    const s3Client = new S3Client({
-      region: process.env.AWS_REGION || "ap-south-1",
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-    })
-
-    const bucketName = process.env.AWS_BUCKET_NAME!
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: bucketName,
-        Key: uniqueFileName,
-        Body: fileBuffer,
-        ContentType: file.type,
-      }),
-    )
-
-    // Pre-signed URL for download/view (expires in 10 mins)
-    const signedUrl = await getSignedUrl(
-      s3Client,
-      new GetObjectCommand({
-        Bucket: bucketName,
-        Key: uniqueFileName,
-      }),
-      { expiresIn: 600 },
-    )
-
-    return NextResponse.json({
-      url: signedUrl,
-      uniqueFileName,
-    })
+    return NextResponse.json({uniqueFileName})
   } catch (error) {
     console.error("Upload error:", error)
     return NextResponse.json(

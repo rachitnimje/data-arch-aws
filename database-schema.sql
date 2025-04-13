@@ -46,12 +46,14 @@ CREATE TABLE IF NOT EXISTS job_applications (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create page_content table
-CREATE TABLE IF NOT EXISTS page_content (
+-- Create contact_submissions table if it doesn't exist
+CREATE TABLE IF NOT EXISTS contact_submissions (
   id SERIAL PRIMARY KEY,
-  page TEXT NOT NULL,
-  section TEXT NOT NULL,
-  content JSONB NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(page, section)
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  company TEXT,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  status TEXT NOT NULL DEFAULT 'new'
 );

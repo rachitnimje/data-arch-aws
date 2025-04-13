@@ -7,22 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { toast } from "@/components/ui/use-toast"
-
-interface JobApplication {
-  id: number
-  job_id: string
-  first_name: string
-  last_name: string
-  email: string
-  phone: string
-  years_experience?: number
-  current_company?: string
-  resume_url?: string
-  status: string
-  notes?: string
-  created_at: string
-  job_title?: string
-}
+import { JobApplication } from "@/lib/schema"
 
 export default function ApplicationDetailPage() {
   const params = useParams()
@@ -202,19 +187,9 @@ export default function ApplicationDetailPage() {
   }
 
   const handleDownloadResume = async () => {
-    if (!application?.resume_url) return
-
-    try {
-      // For direct S3 URLs, just open them
-      window.open(application.resume_url, "_blank")
-    } catch (error) {
-      console.error("Error downloading resume:", error)
-      toast({
-        title: "Error",
-        description: "Failed to download resume. Please try again.",
-        variant: "destructive",
-      })
-    }
+    const res = await fetch(`/api/resume-url?key=${application?.resume_url}`)
+    const { url } = await res.json()
+    window.open(url, "_blank")
   }
 
   if (loading) {
@@ -253,11 +228,7 @@ export default function ApplicationDetailPage() {
           {application.resume_url && (
             <Button
               variant="outline"
-              onClick={async () => {
-                const res = await fetch(`/api/resume-url?key=${application.resume_url}`)
-                const { url } = await res.json()
-                window.open(url, "_blank")
-              }}
+              onClick={handleDownloadResume}
             >
               <Download className="h-4 w-4 mr-2" /> Download Resume
             </Button>

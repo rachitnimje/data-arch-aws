@@ -77,28 +77,29 @@ export default function AdminJobsPage() {
       }
     }
   }
-
+  
   const handleStatusToggle = async (id: string) => {
     const job = jobs.find((j) => j.id === id)
     if (!job) return
-
+  
     const newStatus = job.status === "active" ? "inactive" : "active"
-
+  
     try {
       const response = await fetch(`/api/jobs/${id}`, {
-        method: "PUT",
+        method: "PUT", 
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: newStatus }),
       })
-
+  
       if (!response.ok) {
         throw new Error(`Failed to update job status: ${response.status}`)
       }
-
+  
+      // Update the local state
       setJobs(jobs.map((job) => (job.id === id ? { ...job, status: newStatus } : job)))
-
+  
       toast({
         title: "Status updated",
         description: "The job status has been updated successfully.",
@@ -113,7 +114,6 @@ export default function AdminJobsPage() {
     }
   }
 
-  // Filter and sort jobs
   const filteredJobs = jobs
     .filter((job) => {
       const matchesSearch =

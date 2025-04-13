@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, MapPin, Calendar, Briefcase, Clock } from "lucide-react"
 import Link from "next/link"
 import { PageLayout } from "@/components/page-layout"
-import type { Job } from "@/lib/supabase"
+import type { Job } from "@/lib/schema"
 
 export default function JobDetailPage() {
   const params = useParams()

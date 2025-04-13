@@ -1,8 +1,6 @@
 import { randomBytes } from "crypto"
 import { encryptData, decryptData } from "./encryption"
 
-const CSRF_COOKIE_NAME = "csrf_token"
-const CSRF_HEADER_NAME = "X-CSRF-Token"
 const CSRF_TOKEN_EXPIRY = 3600 * 1000 // 1 hour expiry
 
 // Generate a cryptographically secure random token

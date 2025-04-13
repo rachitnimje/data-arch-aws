@@ -3,15 +3,15 @@ import { getSignedUrl as awsGetSignedUrl } from "@aws-sdk/s3-request-presigner"
 
 // Initialize S3 client
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "us-east-1",
+  region: process.env.AWS_REGION!,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
   },
 })
 
 // Upload a file to S3
-export async function uploadToS3(file: Buffer, key: string, contentType: string): Promise<string> {
+export async function uploadToS3(file: Buffer, key: string, contentType: string): Promise<void> {
   const bucketName = process.env.AWS_BUCKET_NAME
 
   if (!bucketName) {
@@ -28,7 +28,7 @@ export async function uploadToS3(file: Buffer, key: string, contentType: string)
   await s3Client.send(command)
 
   // Return the key (not the full URL)
-  return key
+  return 
 }
 
 // Generate a signed URL for a file in S3
