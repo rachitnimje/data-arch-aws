@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { authenticateUser, createToken } from "@/lib/auth"
+import { authenticateUser, createToken, setAuthCookie } from "@/lib/auth"
 import { validateCsrfToken } from "@/lib/csrf"
 
 export async function POST(request: NextRequest) {
@@ -35,17 +35,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create authentication token" }, { status: 500 })
     }
 
-    // Set the token as an HTTP-only cookie
     const response = NextResponse.json({ success: true, user })
-    response.cookies.set({
-      name: "auth_token",
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24, // 1 day
-    })
+    await setAuthCookie(token)
 
     return response
   } catch (error) {

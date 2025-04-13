@@ -92,7 +92,8 @@ export async function authenticateUser(username: string, password: string) {
 
 // Get the current user from the auth cookie
 export async function getCurrentUser() {
-  const token = cookies().get("auth_token")?.value
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value
   if (!token) {
     return null
   }
@@ -112,9 +113,25 @@ export async function getCurrentUser() {
   }
 }
 
-// Clear the auth cookie
-export function clearAuthCookie() {
-  cookies().delete("auth_token")
+// Set the auth cookie with all necessary options
+export async function setAuthCookie(token: string, maxAge: number = 60 * 60 * 24): Promise<void> {
+  const cookieStore = await cookies();
+  
+  cookieStore.set({
+    name: "auth_token",
+    value: token,
+    maxAge: maxAge, // 1 day by default
+    path: "/",
+    // domain: "yourdomain.com", // Uncomment and set for your domain
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax"
+  });
+}
+
+export async function clearAuthCookie(): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.delete("auth_token")
 }
 
 export async function protectRoute(request: NextRequest) {
