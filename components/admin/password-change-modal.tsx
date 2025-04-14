@@ -31,10 +31,10 @@ export function PasswordChangeModal({ isOpen, onClose }: PasswordChangeModalProp
     setError("")
 
     // Validate passwords
-    if (newPassword.length < 8) {
-      setError("New password must be at least 8 characters long")
-      return
-    }
+    // if (newPassword.length < 8) {
+    //   setError("New password must be at least 8 characters long")
+    //   return
+    // }
 
     if (newPassword !== confirmPassword) {
       setError("New passwords do not match")
