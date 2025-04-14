@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { LoadingAnimation } from "@/components/loading-animation";
 
 export default function AdminJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -34,7 +35,7 @@ export default function AdminJobsPage() {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Error modal state
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState("");
@@ -86,12 +87,17 @@ export default function AdminJobsPage() {
           // Check for foreign key constraint violation
           if (data.code === "FOREIGN_KEY_CONSTRAINT") {
             setErrorModalTitle("Cannot Delete Job");
-            setErrorModalMessage(data.message || "This job has associated applications and cannot be deleted.");
+            setErrorModalMessage(
+              data.message ||
+                "This job has associated applications and cannot be deleted."
+            );
             setShowErrorModal(true);
             return;
           }
-          
-          throw new Error(`Failed to delete job: ${data.error || response.status}`);
+
+          throw new Error(
+            `Failed to delete job: ${data.error || response.status}`
+          );
         }
 
         setJobs(jobs.filter((job) => job.id !== id));
@@ -195,9 +201,7 @@ export default function AdminJobsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center">
-            <Button onClick={() => setShowErrorModal(false)}>
-              Understood
-            </Button>
+            <Button onClick={() => setShowErrorModal(false)}>Understood</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -240,9 +244,7 @@ export default function AdminJobsPage() {
           </div>
 
           {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-DEFAULT"></div>
-            </div>
+            <LoadingAnimation />
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-lg text-gray-600">{error}</p>
