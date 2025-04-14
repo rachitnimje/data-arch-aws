@@ -129,10 +129,9 @@ export async function PUT(
   }
 }
 
-// DELETE /api/jobs/[id] - Delete a job (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -147,6 +146,7 @@ export async function DELETE(
     }
 
     // Convert string ID from URL to integer
+    const params = await context.params
     const id = parseInt(params.id, 10);
 
     // Check if id is a valid number
@@ -154,15 +154,48 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid job ID" }, { status: 400 });
     }
 
-    await prisma.jobs.delete({
-      where: { id },
+    // First check if this job has any applications
+    const applicationsCount = await prisma.job_applications.count({
+      where: { job_id: id }
     });
 
-    // Revalidate the careers page to update the cache
-    revalidatePath("/careers");
-    revalidatePath("/admin/jobs");
+    if (applicationsCount > 0) {
+      // If there are applications, return an error immediately
+      return NextResponse.json(
+        { 
+          error: "Cannot delete job", 
+          message: "This job has associated applications. Remove the applications first or set the job to inactive instead.", 
+          code: "FOREIGN_KEY_CONSTRAINT" 
+        }, 
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json({ success: true });
+    // If no applications, try to delete the job
+    try {
+      await prisma.jobs.delete({
+        where: { id },
+      });
+
+      // Revalidate the careers page to update the cache
+      revalidatePath("/careers");
+      revalidatePath("/admin/jobs");
+
+      return NextResponse.json({ success: true });
+    } catch (error: any) {
+      // If we still get an error (shouldn't happen after the check above, but just in case)
+      if (error?.code === 'P2003') {
+        return NextResponse.json(
+          { 
+            error: "Cannot delete job", 
+            message: "This job has associated applications. Remove the applications first or set the job to inactive instead.", 
+            code: "FOREIGN_KEY_CONSTRAINT" 
+          }, 
+          { status: 400 }
+        );
+      }
+      throw error; // Re-throw if it's a different error
+    }
   } catch (error) {
     console.error("Error deleting job:", error);
     return NextResponse.json(

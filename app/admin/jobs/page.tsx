@@ -9,6 +9,7 @@ import {
   Eye,
   ChevronDown,
   ChevronUp,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { toast } from "@/components/ui/use-toast";
 import type { Job } from "@/lib/schema";
-import DeleteJobButton from "@/components/admin/delete-job";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function AdminJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -26,6 +34,11 @@ export default function AdminJobsPage() {
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Error modal state
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState("");
+  const [errorModalTitle, setErrorModalTitle] = useState("");
 
   useEffect(() => {
     fetchJobs();
@@ -66,8 +79,19 @@ export default function AdminJobsPage() {
           method: "DELETE",
         });
 
+        const data = await response.json();
+        console.log("Delete response:", response.status, data);
+
         if (!response.ok) {
-          throw new Error(`Failed to delete job: ${response.status}`);
+          // Check for foreign key constraint violation
+          if (data.code === "FOREIGN_KEY_CONSTRAINT") {
+            setErrorModalTitle("Cannot Delete Job");
+            setErrorModalMessage(data.message || "This job has associated applications and cannot be deleted.");
+            setShowErrorModal(true);
+            return;
+          }
+          
+          throw new Error(`Failed to delete job: ${data.error || response.status}`);
         }
 
         setJobs(jobs.filter((job) => job.id !== id));
@@ -125,10 +149,6 @@ export default function AdminJobsPage() {
     }
   };
 
-  const handleDeleteSuccess = () => {
-    fetchJobs() // Refresh the job list
-  }
-
   const filteredJobs = jobs
     .filter((job) => {
       const matchesSearch =
@@ -161,6 +181,26 @@ export default function AdminJobsPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Error Modal */}
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              {errorModalTitle}
+            </DialogTitle>
+            <DialogDescription className="pt-4">
+              {errorModalMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center">
+            <Button onClick={() => setShowErrorModal(false)}>
+              Understood
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card className="mb-8">
         <CardContent>
@@ -359,20 +399,15 @@ export default function AdminJobsPage() {
                                 ></div>
                               </div>
                             </Button>
-                            {/* <Button
+
+                            <Button
                               variant="ghost"
                               size="sm"
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
                               onClick={() => handleDelete(job.id)}
                             >
                               <Trash2 className="h-4 w-4" />
-                            </Button> */}
-
-                            <DeleteJobButton
-                              jobId={job.id}
-                              jobTitle={job.title}
-                              onSuccess={handleDeleteSuccess}
-                            />
+                            </Button>
                           </div>
                         </td>
                       </tr>
