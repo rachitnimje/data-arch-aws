@@ -39,8 +39,9 @@ export default function CareersPage() {
       }
 
       // Transform the data to match the JobPosition interface
+      // Convert id to string to match the JobPosition interface
       const transformedJobs: JobPosition[] = data.map((job) => ({
-        id: job.id,
+        id: String(job.id), // Convert number to string here
         title: job.title,
         location: job.location,
         department: job.department,
