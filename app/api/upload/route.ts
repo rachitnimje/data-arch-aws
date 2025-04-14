@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { uploadToS3 } from "@/lib/s3"
 
-// POST api/upload
+// POST api/upload - Upload file (resume) (public)
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()

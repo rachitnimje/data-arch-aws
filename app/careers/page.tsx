@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { JobCard, type JobPosition } from "@/components/careers/job-card"
 import { JobFilter } from "@/components/careers/job-filter"
 import { PageLayout } from "@/components/page-layout"
-import type { Job } from "@/lib/supabase"
+import type { Job } from "@/lib/schema"
 
 export default function CareersPage() {
   const [jobListings, setJobListings] = useState<JobPosition[]>([])

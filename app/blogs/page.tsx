@@ -7,7 +7,7 @@ import { Footer } from "@/components/footer";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { Blog } from "@/lib/supabase";
+import type { Blog } from "@/lib/schema";
 import dynamic from "next/dynamic";
 
 // Dynamically import the BlogCard component

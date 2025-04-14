@@ -3,6 +3,7 @@ import { verifyToken } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import prisma from "@/lib/prisma"
 
+// GET /api/contact/[id] - Get contact submission with id (admin only)
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Check authentication
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-// PUT /api/contact/:id - Update a contact submission
+// PUT /api/contact/[id] - Update a contact submission (admin only)
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Check authentication
@@ -81,12 +82,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-// For compatibility with PATCH requests that might be used
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   // Redirect to PUT handler
   return PUT(request, { params })
 }
 
+// DELETE /api/contact/[id] - Delete a contact submission (admin only)
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Check authentication

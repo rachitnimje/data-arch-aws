@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { Calendar, User, Tag, ArrowRight } from "lucide-react";
-import type { Blog } from "@/lib/supabase";
+import type { Blog } from "@/lib/schema";
 
 interface BlogCardProps {
   post: Blog;

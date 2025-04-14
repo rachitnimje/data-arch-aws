@@ -9,7 +9,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Calendar, User, Tag, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { Blog } from "@/lib/supabase"
+import type { Blog } from "@/lib/schema"
 
 export default function BlogPostPage() {
   const params = useParams()

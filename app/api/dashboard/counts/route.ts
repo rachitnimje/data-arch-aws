@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { verifyToken } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 
+// GET /api/dashboard/counts - Get counts of blogs, job posts, job application and contact submission (admin only)
 export async function GET(request: NextRequest) {
   try {
     // Check authentication

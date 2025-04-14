@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
-import type { JobApplication } from "@/lib/supabase"
+import type { JobApplication } from "@/lib/schema"
 import { useRouter } from "next/navigation"
 
 export default function AdminApplicationsPage() {
@@ -419,3 +419,4 @@ export default function AdminApplicationsPage() {
     </div>
   )
 }
+ 

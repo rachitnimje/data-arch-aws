@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { verifyToken } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 
+// GET /api/contact - Get all contact submissions (admin only)
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST /api/contact - Create new contact submission (public)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

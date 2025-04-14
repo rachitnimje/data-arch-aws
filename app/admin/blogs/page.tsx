@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { toast } from "@/components/ui/use-toast"
-import type { Blog } from "@/lib/supabase"
+import type { Blog } from "@/lib/schema"
 
 export default function AdminBlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([])
@@ -17,7 +17,6 @@ export default function AdminBlogsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isTableMissing, setIsTableMissing] = useState(false)
-  const [isCreatingTable, setIsCreatingTable] = useState(false)
 
   useEffect(() => {
     fetchBlogs()
@@ -76,39 +75,6 @@ export default function AdminBlogsPage() {
       })
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const createBlogsTable = async () => {
-    setIsCreatingTable(true)
-
-    try {
-      const response = await fetch("/api/setup/create-tables", {
-        method: "POST",
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `Failed to create tables: ${response.status}`)
-      }
-
-      toast({
-        title: "Tables created",
-        description: "Database tables have been successfully created.",
-      })
-
-      // Refetch blogs after table creation
-      await fetchBlogs()
-      setIsTableMissing(false)
-    } catch (err) {
-      console.error("Error creating tables:", err)
-      toast({
-        title: "Error",
-        description: err instanceof Error ? err.message : "Failed to create database tables",
-        variant: "destructive",
-      })
-    } finally {
-      setIsCreatingTable(false)
     }
   }
 
@@ -213,45 +179,6 @@ export default function AdminBlogsPage() {
           </Button>
         </Link>
       </div>
-
-      {isTableMissing && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-6 py-4 rounded-lg mb-6">
-          <div className="flex items-start">
-            <Database className="h-6 w-6 mr-3 mt-0.5" />
-            <div>
-              <h3 className="font-bold text-lg mb-1">Database Setup Required</h3>
-              <p className="mb-4">
-                The blogs table doesn't exist in your Supabase database yet. You need to set up the required tables
-                before you can use this feature.
-              </p>
-              <div className="flex gap-4">
-                <Button
-                  onClick={createBlogsTable}
-                  disabled={isCreatingTable}
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                >
-                  {isCreatingTable ? "Creating Tables..." : "Create Tables Now"}
-                </Button>
-                <a
-                  href="https://supabase.com/dashboard"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 border border-yellow-600 text-yellow-600 rounded-md hover:bg-yellow-50"
-                >
-                  Open Supabase Dashboard
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {error && !isTableMissing && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          <p className="font-medium">Error loading blogs</p>
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
 
       <Card className="mb-8">
         <CardContent>

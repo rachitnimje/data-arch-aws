@@ -129,6 +129,7 @@ export async function PUT(
   }
 }
 
+// DELETE /api/jobs/[id] - Delete a job (admin only)
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
