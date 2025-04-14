@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Download, Mail, Phone, Calendar, Briefcase, User, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,59 +20,62 @@ export default function ApplicationDetailPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  useEffect(() => {
-    fetchApplication()
-  }, [])
+  // Memoize fetchApplication to prevent recreating on each render
+  const fetchApplication = useCallback(async () => {
+    if (!params.id) return
 
-  const fetchApplication = async () => {
     setLoading(true)
-    try {
-      // Fetch application data
-      const response = await fetch(`/api/applications/${params.id}`)
+    setError(null)
 
-      if (!response.ok) {
-        if (response.status === 404) {
+    try {
+      // Use Promise.all to fetch application data and job details in parallel
+      const applicationPromise = fetch(`/api/applications/${params.id}`)
+      
+      // Wait for the application data first to get the job_id
+      const applicationResponse = await applicationPromise
+      
+      if (!applicationResponse.ok) {
+        if (applicationResponse.status === 404) {
           throw new Error("Application not found")
         }
-        throw new Error(`Failed to fetch application: ${response.status}`)
+        throw new Error(`Failed to fetch application: ${applicationResponse.status}`)
       }
 
-      const data = await response.json()
+      const data = await applicationResponse.json()
 
-      // Ensure first_name and last_name are not undefined
-      data.first_name = data.first_name || ""
-      data.last_name = data.last_name || ""
-
-      // Set application data immediately to avoid undefined values
-      setApplication({
+      // Set basic application data immediately
+      const appData = {
         ...data,
+        first_name: data.first_name || "",
+        last_name: data.last_name || "",
         job_title: "Loading position...",
-      })
+      }
 
-      // Set notes and status
+      setApplication(appData)
       setNotes(data.notes || "")
       setStatus(data.status || "new")
 
-      // Only try to fetch job details if we have a valid job_id
+      // If job_id exists, fetch job details in parallel
       if (data.job_id) {
         try {
-          const jobResponse = await fetch(`/api/jobs/${data.job_id}`)
+          const jobResponse = await fetch(`/api/jobs/${data.job_id}`, {
+            headers: {
+              "Cache-Control": "max-age=600", // Cache for 10 minutes
+            },
+          })
 
           if (jobResponse.ok) {
             const jobData = await jobResponse.json()
-            setApplication((prev) => (prev ? { ...prev, job_title: jobData.title } : null))
+            setApplication(prev => prev ? { ...prev, job_title: jobData.title } : null)
           } else {
-            console.error(`Failed to fetch job details: ${jobResponse.status}`)
-            // Still update the application, just with a fallback job title
-            setApplication((prev) => (prev ? { ...prev, job_title: "Position details unavailable" } : null))
+            setApplication(prev => prev ? { ...prev, job_title: "Position details unavailable" } : null)
           }
         } catch (error) {
-          console.error(`Error fetching job details:`, error)
-          setApplication((prev) => (prev ? { ...prev, job_title: "Position details unavailable" } : null))
+          console.error("Error fetching job details:", error)
+          setApplication(prev => prev ? { ...prev, job_title: "Position details unavailable" } : null)
         }
       } else {
-        // If no job_id, set a fallback job title
-        setApplication((prev) => (prev ? { ...prev, job_title: "No position specified" } : null))
+        setApplication(prev => prev ? { ...prev, job_title: "No position specified" } : null)
       }
     } catch (err) {
       console.error("Error fetching application:", err)
@@ -80,7 +83,11 @@ export default function ApplicationDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id])
+
+  useEffect(() => {
+    fetchApplication()
+  }, [fetchApplication])
 
   const handleSaveNotes = async () => {
     if (!application) return
@@ -96,11 +103,11 @@ export default function ApplicationDetailPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || `Failed to update notes: ${response.status}`)
       }
 
-      setApplication((prev) => (prev ? { ...prev, notes } : null))
+      setApplication(prev => prev ? { ...prev, notes } : null)
 
       toast({
         title: "Notes saved",
@@ -119,9 +126,13 @@ export default function ApplicationDetailPage() {
   }
 
   const handleStatusChange = async (newStatus: string) => {
-    if (!application) return
+    if (!application || status === newStatus) return // Avoid unnecessary API calls
 
     try {
+      // Optimistic update
+      setStatus(newStatus)
+      setApplication(prev => prev ? { ...prev, status: newStatus } : null)
+
       const response = await fetch(`/api/applications/${application.id}`, {
         method: "PUT",
         headers: {
@@ -131,16 +142,16 @@ export default function ApplicationDetailPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json().catch(() => ({}))
+        // Revert optimistic update on error
+        setStatus(application.status)
+        setApplication(prev => prev ? { ...prev, status: application.status } : null)
         throw new Error(errorData.error || `Failed to update status: ${response.status}`)
       }
 
-      setStatus(newStatus)
-      setApplication((prev) => (prev ? { ...prev, status: newStatus } : null))
-
       toast({
         title: "Status updated",
-        description: `Application status changed to ${newStatus}.`,
+        description: `Application status changed to ${newStatus.replace("_", " ")}.`,
       })
     } catch (error) {
       console.error("Error updating status:", error)
@@ -163,7 +174,7 @@ export default function ApplicationDetailPage() {
         })
 
         if (!response.ok) {
-          const errorData = await response.json()
+          const errorData = await response.json().catch(() => ({}))
           throw new Error(errorData.error || `Failed to delete application: ${response.status}`)
         }
 
@@ -187,9 +198,25 @@ export default function ApplicationDetailPage() {
   }
 
   const handleDownloadResume = async () => {
-    const res = await fetch(`/api/resume-url?key=${application?.resume_url}`)
-    const { url } = await res.json()
-    window.open(url, "_blank")
+    if (!application?.resume_url) return
+    
+    try {
+      const res = await fetch(`/api/resume-url?key=${encodeURIComponent(application.resume_url)}`)
+      
+      if (!res.ok) {
+        throw new Error(`Failed to get resume URL: ${res.status}`)
+      }
+      
+      const { url } = await res.json()
+      window.open(url, "_blank")
+    } catch (error) {
+      console.error("Error downloading resume:", error)
+      toast({
+        title: "Error",
+        description: "Failed to download resume. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   if (loading) {
@@ -212,6 +239,10 @@ export default function ApplicationDetailPage() {
   }
 
   const statusOptions = ["new", "in_review", "interviewed", "hired", "rejected"]
+
+  // Preprocess formatted data to avoid recalculation in render
+  const formattedDate = new Date(application.created_at).toLocaleDateString()
+  const statusLabel = (option: string) => option.replace("_", " ").charAt(0).toUpperCase() + option.replace("_", " ").slice(1)
 
   return (
     <div>
@@ -292,7 +323,7 @@ export default function ApplicationDetailPage() {
                     <Calendar className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />
                     <div>
                       <p className="text-sm text-gray-500">Applied Date</p>
-                      <p className="font-medium">{new Date(application.created_at).toLocaleDateString()}</p>
+                      <p className="font-medium">{formattedDate}</p>
                     </div>
                   </div>
                   {application.current_company && (
@@ -349,7 +380,7 @@ export default function ApplicationDetailPage() {
                     }`}
                     onClick={() => handleStatusChange(option)}
                   >
-                    {option.replace("_", " ").charAt(0).toUpperCase() + option.replace("_", " ").slice(1)}
+                    {statusLabel(option)}
                   </Button>
                 ))}
               </div>

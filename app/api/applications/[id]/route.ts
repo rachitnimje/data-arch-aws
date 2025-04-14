@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma"
 // GET /api/applications/[id] - Get a specific application (admin only)
 export async function GET(
   request: NextRequest, 
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -20,8 +20,8 @@ export async function GET(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
-    // Access the id from context.params instead of params directly
-    const id = Number.parseInt(context.params.id, 10)
+    const params = await context.params;
+    const id = Number.parseInt(params.id, 10)
 
     // Check if id is a valid number
     if (isNaN(id)) {
@@ -46,7 +46,7 @@ export async function GET(
 // PUT /api/applications/[id] - Update a specific application (admin only)
 export async function PUT(
   request: NextRequest, 
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -60,8 +60,8 @@ export async function PUT(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
-    // Access the id from context.params
-    const id = Number.parseInt(context.params.id, 10)
+    const params = await context.params
+    const id = Number.parseInt(params.id, 10)
 
     // Check if id is a valid number
     if (isNaN(id)) {
@@ -107,7 +107,7 @@ export async function PUT(
 // DELETE /api/applications/[id] - Delete a specific application (admin only)
 export async function DELETE(
   request: NextRequest, 
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -121,8 +121,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
-    // Access the id from context.params
-    const id = Number.parseInt(context.params.id, 10)
+    const params = await context.params
+    const id = Number.parseInt(params.id, 10)
 
     // Check if id is a valid number
     if (isNaN(id)) {

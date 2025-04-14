@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation"
 export default function AdminApplicationsPage() {
   const [applications, setApplications] = useState<JobApplication[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [sortField, setSortField] = useState<string | null>("created_at")
+  const [sortField, setSortField] = useState<keyof JobApplication>("created_at")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [filterStatus, setFilterStatus] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -21,18 +21,25 @@ export default function AdminApplicationsPage() {
   const [isDownloading, setIsDownloading] = useState<Record<number, boolean>>({})
   const router = useRouter()
 
-  // Use useCallback to memoize the fetch function - REMOVE jobTitles from dependency array
+  // Use useCallback to memoize the fetch function
   const fetchApplications = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      // First fetch all jobs to get their titles - we'll use this to avoid multiple API calls later
-      const jobsResponse = await fetch("/api/jobs", {
-        headers: {
-          "Cache-Control": "max-age=300", // Cache for 5 minutes
-        },
-      })
+      // Use Promise.all to fetch jobs and applications in parallel
+      const [jobsResponse, applicationsResponse] = await Promise.all([
+        fetch("/api/jobs", {
+          headers: {
+            "Cache-Control": "max-age=300", // Cache for 5 minutes
+          },
+        }),
+        fetch("/api/applications")
+      ]);
+
+      if (!applicationsResponse.ok) {
+        throw new Error(`Failed to fetch applications: ${applicationsResponse.status}`)
+      }
 
       const titles: Record<string, string> = {}
       if (jobsResponse.ok) {
@@ -43,14 +50,7 @@ export default function AdminApplicationsPage() {
         setJobTitles(titles)
       }
 
-      // Then fetch all applications
-      const response = await fetch("/api/applications")
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch applications: ${response.status}`)
-      }
-
-      const data = await response.json()
+      const data = await applicationsResponse.json()
 
       // Add job titles to applications data to avoid separate API calls later
       const enhancedData = data.map((app: JobApplication) => ({
@@ -65,13 +65,13 @@ export default function AdminApplicationsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, []) // Remove jobTitles from dependency array to prevent infinite loop
+  }, [])
 
   useEffect(() => {
     fetchApplications()
   }, [fetchApplications])
 
-  const handleSort = useCallback((field: string) => {
+  const handleSort = useCallback((field: keyof JobApplication) => {
     setSortField((prev) => {
       if (prev === field) {
         setSortDirection((d) => (d === "asc" ? "desc" : "asc"))
@@ -140,7 +140,7 @@ export default function AdminApplicationsPage() {
     }
   }, [])
 
-  const handleDownloadResume = useCallback(async (id: number, resumeUrl: string) => {
+  const handleDownloadResume = useCallback(async (id: number, resumeUrl: string | undefined) => {
     if (!resumeUrl) {
       toast({
         title: "No resume available",
@@ -188,14 +188,19 @@ export default function AdminApplicationsPage() {
         return matchesSearch && matchesStatus
       })
       .sort((a, b) => {
-        if (!sortField) return 0
-
-        const fieldA = a[sortField as keyof typeof a]
-        const fieldB = b[sortField as keyof typeof b]
-
-        if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1
-        if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1
-        return 0
+        // Fix for potentially undefined values
+        const fieldA = a[sortField];
+        const fieldB = b[sortField];
+        
+        // Handle cases where the fields might be undefined
+        if (fieldA === undefined && fieldB === undefined) return 0;
+        if (fieldA === undefined) return sortDirection === "asc" ? -1 : 1;
+        if (fieldB === undefined) return sortDirection === "asc" ? 1 : -1;
+        
+        // Normal comparison when both values exist
+        if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1;
+        if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1;
+        return 0;
       })
   }, [applications, searchTerm, filterStatus, sortField, sortDirection])
 
@@ -419,4 +424,3 @@ export default function AdminApplicationsPage() {
     </div>
   )
 }
- 
