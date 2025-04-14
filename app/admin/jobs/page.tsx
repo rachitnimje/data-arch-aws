@@ -1,117 +1,132 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Plus, Search, Edit, Trash2, Eye, ChevronDown, ChevronUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import Link from "next/link"
-import { toast } from "@/components/ui/use-toast"
-import type { Job } from "@/lib/supabase"
+import { useState, useEffect } from "react";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import { toast } from "@/components/ui/use-toast";
+import type { Job } from "@/lib/schema";
+import DeleteJobButton from "@/components/admin/delete-job";
 
 export default function AdminJobsPage() {
-  const [jobs, setJobs] = useState<Job[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortField, setSortField] = useState<string | null>(null)
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-  const [filterStatus, setFilterStatus] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchJobs()
-  }, [])
+    fetchJobs();
+  }, []);
 
   const fetchJobs = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await fetch("/api/jobs")
+      const response = await fetch("/api/jobs");
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch jobs: ${response.status}`)
+        throw new Error(`Failed to fetch jobs: ${response.status}`);
       }
 
-      const data = await response.json()
-      setJobs(data)
+      const data = await response.json();
+      setJobs(data);
     } catch (err) {
-      console.error("Error fetching jobs:", err)
-      setError("Failed to load job listings")
+      console.error("Error fetching jobs:", err);
+      setError("Failed to load job listings");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSort = (field: string) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortDirection("asc")
+      setSortField(field);
+      setSortDirection("asc");
     }
-  }
+  };
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this job post?")) {
       try {
         const response = await fetch(`/api/jobs/${id}`, {
           method: "DELETE",
-        })
+        });
 
         if (!response.ok) {
-          throw new Error(`Failed to delete job: ${response.status}`)
+          throw new Error(`Failed to delete job: ${response.status}`);
         }
 
-        setJobs(jobs.filter((job) => job.id !== id))
+        setJobs(jobs.filter((job) => job.id !== id));
 
         toast({
           title: "Job deleted",
           description: "The job post has been successfully deleted.",
-        })
+        });
       } catch (error) {
-        console.error("Error deleting job:", error)
+        console.error("Error deleting job:", error);
         toast({
           title: "Error",
           description: "Failed to delete job post. Please try again.",
           variant: "destructive",
-        })
+        });
       }
     }
-  }
-  
+  };
+
   const handleStatusToggle = async (id: string) => {
-    const job = jobs.find((j) => j.id === id)
-    if (!job) return
-  
-    const newStatus = job.status === "active" ? "inactive" : "active"
-  
+    const job = jobs.find((j) => j.id === id);
+    if (!job) return;
+
+    const newStatus = job.status === "active" ? "inactive" : "active";
+
     try {
       const response = await fetch(`/api/jobs/${id}`, {
-        method: "PUT", 
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: newStatus }),
-      })
-  
+      });
+
       if (!response.ok) {
-        throw new Error(`Failed to update job status: ${response.status}`)
+        throw new Error(`Failed to update job status: ${response.status}`);
       }
-  
+
       // Update the local state
-      setJobs(jobs.map((job) => (job.id === id ? { ...job, status: newStatus } : job)))
-  
+      setJobs(
+        jobs.map((job) => (job.id === id ? { ...job, status: newStatus } : job))
+      );
+
       toast({
         title: "Status updated",
         description: "The job status has been updated successfully.",
-      })
+      });
     } catch (error) {
-      console.error("Error updating job status:", error)
+      console.error("Error updating job status:", error);
       toast({
         title: "Error",
         description: "Failed to update job status. Please try again.",
         variant: "destructive",
-      })
+      });
     }
+  };
+
+  const handleDeleteSuccess = () => {
+    fetchJobs() // Refresh the job list
   }
 
   const filteredJobs = jobs
@@ -119,22 +134,22 @@ export default function AdminJobsPage() {
       const matchesSearch =
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         job.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.location.toLowerCase().includes(searchTerm.toLowerCase())
+        job.location.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = filterStatus ? job.status === filterStatus : true
+      const matchesStatus = filterStatus ? job.status === filterStatus : true;
 
-      return matchesSearch && matchesStatus
+      return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
-      if (!sortField) return 0
+      if (!sortField) return 0;
 
-      const fieldA = a[sortField as keyof typeof a]
-      const fieldB = b[sortField as keyof typeof b]
+      const fieldA = a[sortField as keyof typeof a];
+      const fieldB = b[sortField as keyof typeof b];
 
-      if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1
-      if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1
-      return 0
-    })
+      if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1;
+      if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
 
   return (
     <div>
@@ -284,7 +299,9 @@ export default function AdminJobsPage() {
                           ))}
                       </div>
                     </th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-500">Actions</th>
+                    <th className="text-right py-3 px-4 font-medium text-gray-500">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -295,11 +312,15 @@ export default function AdminJobsPage() {
                         <td className="py-3 px-4">{job.department}</td>
                         <td className="py-3 px-4">{job.location}</td>
                         <td className="py-3 px-4">{job.type}</td>
-                        <td className="py-3 px-4">{new Date(job.created_at).toLocaleDateString()}</td>
+                        <td className="py-3 px-4">
+                          {new Date(job.created_at).toLocaleDateString()}
+                        </td>
                         <td className="py-3 px-4">
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
-                              job.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                              job.status === "active"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
                             }`}
                           >
                             {job.status}
@@ -317,34 +338,51 @@ export default function AdminJobsPage() {
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Button variant="ghost" size="sm" onClick={() => handleStatusToggle(job.id)}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleStatusToggle(job.id)}
+                            >
                               <div
                                 className={`h-4 w-8 rounded-full relative ${
-                                  job.status === "active" ? "bg-green-500" : "bg-gray-300"
+                                  job.status === "active"
+                                    ? "bg-green-500"
+                                    : "bg-gray-300"
                                 }`}
                               >
                                 <div
                                   className={`h-3 w-3 bg-white rounded-full absolute top-0.5 transition-all ${
-                                    job.status === "active" ? "right-0.5" : "left-0.5"
+                                    job.status === "active"
+                                      ? "right-0.5"
+                                      : "left-0.5"
                                   }`}
                                 ></div>
                               </div>
                             </Button>
-                            <Button
+                            {/* <Button
                               variant="ghost"
                               size="sm"
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
                               onClick={() => handleDelete(job.id)}
                             >
                               <Trash2 className="h-4 w-4" />
-                            </Button>
+                            </Button> */}
+
+                            <DeleteJobButton
+                              jobId={job.id}
+                              jobTitle={job.title}
+                              onSuccess={handleDeleteSuccess}
+                            />
                           </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="py-6 text-center text-gray-500">
+                      <td
+                        colSpan={7}
+                        className="py-6 text-center text-gray-500"
+                      >
                         No jobs found matching your criteria
                       </td>
                     </tr>
@@ -356,5 +394,5 @@ export default function AdminJobsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

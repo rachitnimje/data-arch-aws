@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3"
 import { uploadToS3 } from "@/lib/s3"
 
 // POST api/upload
