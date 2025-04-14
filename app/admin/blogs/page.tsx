@@ -1,26 +1,28 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Plus, Search, Edit, Trash2, Eye, ChevronDown, ChevronUp, Database } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Plus, Search, Edit, Trash2, Eye, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { toast } from "@/components/ui/use-toast"
+import { useRouter } from "next/navigation"
 import type { Blog } from "@/lib/schema"
+
+const PAGE_SIZE = 10
 
 export default function AdminBlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [sortField, setSortField] = useState<string | null>(null)
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  const [sortField, setSortField] = useState<keyof Blog | null>("created_at")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isTableMissing, setIsTableMissing] = useState(false)
-
-  useEffect(() => {
-    fetchBlogs()
-  }, [])
+  const [isMutating, setIsMutating] = useState(false)
+  
+  const router = useRouter()
 
   const fetchBlogs = async () => {
     setIsLoading(true)
@@ -78,7 +80,41 @@ export default function AdminBlogsPage() {
     }
   }
 
-  const handleSort = (field: string) => {
+  // Load blogs on mount
+  useEffect(() => {
+    fetchBlogs()
+  }, [])
+
+  // Function to filter and sort blogs client-side (matching original functionality)
+  const filteredBlogs = blogs
+    .filter((blog) => {
+      if (!searchTerm) return true;
+      
+      return (
+        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        blog.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        blog.category.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    })
+    .sort((a, b) => {
+      if (!sortField) return 0
+
+      const fieldA = a[sortField] as string | number | null;
+      const fieldB = b[sortField] as string | number | null;
+
+      // Handle null values (put them at the end)
+      if (fieldA === null && fieldB === null) return 0;
+      if (fieldA === null) return sortDirection === "asc" ? 1 : -1;
+      if (fieldB === null) return sortDirection === "asc" ? -1 : 1;
+
+      // Compare values based on sort direction
+      if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1
+      if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1
+      return 0
+    })
+
+  // Handle sort column click
+  const handleSort = (field: keyof Blog) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc")
     } else {
@@ -87,41 +123,48 @@ export default function AdminBlogsPage() {
     }
   }
 
+  // Handle deleting a blog post
   const handleDelete = async (id: number) => {
-    if (confirm("Are you sure you want to delete this blog post?")) {
-      try {
-        const response = await fetch(`/api/blogs/${id}`, {
-          method: "DELETE",
-        })
+    if (!confirm("Are you sure you want to delete this blog post?")) return
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.error || "Failed to delete blog")
-        }
+    setIsMutating(true)
+    try {
+      const response = await fetch(`/api/blogs/${id}`, {
+        method: "DELETE",
+      })
 
-        setBlogs(blogs.filter((blog) => blog.id !== id))
-
-        toast({
-          title: "Blog deleted",
-          description: "The blog post has been successfully deleted.",
-        })
-      } catch (error) {
-        console.error("Error deleting blog:", error)
-        toast({
-          title: "Error",
-          description: "Failed to delete blog post. Please try again.",
-          variant: "destructive",
-        })
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to delete blog")
       }
+
+      // Update local state to remove the deleted blog
+      setBlogs(blogs.filter((blog) => blog.id !== id))
+      
+      toast({
+        title: "Blog deleted",
+        description: "The blog post has been successfully deleted.",
+      })
+    } catch (error) {
+      console.error("Error deleting blog:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete blog post. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsMutating(false)
     }
   }
 
+  // Handle toggling blog status
   const handleStatusToggle = async (id: number, currentStatus: string) => {
     const newStatus = currentStatus === "published" ? "draft" : "published"
+    setIsMutating(true)
 
     try {
       const response = await fetch(`/api/blogs/${id}`, {
-        method: "PUT",
+        method: "PUT", // Keep using PUT as in original code
         headers: {
           "Content-Type": "application/json",
         },
@@ -133,7 +176,10 @@ export default function AdminBlogsPage() {
         throw new Error(errorData.error || "Failed to update blog status")
       }
 
-      setBlogs(blogs.map((blog) => (blog.id === id ? { ...blog, status: newStatus } : blog)))
+      // Update local state to reflect the status change
+      setBlogs(blogs.map((blog) => 
+        blog.id === id ? { ...blog, status: newStatus as "published" | "draft" } : blog
+      ))
 
       toast({
         title: "Status updated",
@@ -146,32 +192,15 @@ export default function AdminBlogsPage() {
         description: "Failed to update blog status. Please try again.",
         variant: "destructive",
       })
+    } finally {
+      setIsMutating(false)
     }
   }
 
-  // Filter and sort blogs
-  const filteredBlogs = blogs
-    .filter((blog) => {
-      return (
-        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.category.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    })
-    .sort((a, b) => {
-      if (!sortField) return 0
-
-      const fieldA = a[sortField as keyof typeof a]
-      const fieldB = b[sortField as keyof typeof b]
-
-      if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1
-      if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1
-      return 0
-    })
-
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      {/* Header with title and New Blog button */}
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Blog Management</h1>
         <Link href="/admin/blogs/new">
           <Button className="text-purple-dark font-bold bg-white border-2 border-purple-dark hover:bg-purple-dark hover:text-white">
@@ -180,9 +209,11 @@ export default function AdminBlogsPage() {
         </Link>
       </div>
 
-      <Card className="mb-8">
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-6">
+      {/* Main content card */}
+      <Card>
+        <CardContent className="pt-6">
+          {/* Search bar */}
+          <div className="flex mb-6 mt-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
@@ -194,9 +225,10 @@ export default function AdminBlogsPage() {
             </div>
           </div>
 
+          {/* Loading state */}
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-DEFAULT"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -209,12 +241,11 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Title
-                        {sortField === "title" &&
-                          (sortDirection === "asc" ? (
-                            <ChevronUp className="h-4 w-4 ml-1" />
-                          ) : (
+                        {sortField === "title" && (
+                          sortDirection === "asc" ? 
+                            <ChevronUp className="h-4 w-4 ml-1" /> : 
                             <ChevronDown className="h-4 w-4 ml-1" />
-                          ))}
+                        )}
                       </div>
                     </th>
                     <th
@@ -223,12 +254,11 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Author
-                        {sortField === "author" &&
-                          (sortDirection === "asc" ? (
-                            <ChevronUp className="h-4 w-4 ml-1" />
-                          ) : (
+                        {sortField === "author" && (
+                          sortDirection === "asc" ? 
+                            <ChevronUp className="h-4 w-4 ml-1" /> : 
                             <ChevronDown className="h-4 w-4 ml-1" />
-                          ))}
+                        )}
                       </div>
                     </th>
                     <th
@@ -237,12 +267,11 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Category
-                        {sortField === "category" &&
-                          (sortDirection === "asc" ? (
-                            <ChevronUp className="h-4 w-4 ml-1" />
-                          ) : (
+                        {sortField === "category" && (
+                          sortDirection === "asc" ? 
+                            <ChevronUp className="h-4 w-4 ml-1" /> : 
                             <ChevronDown className="h-4 w-4 ml-1" />
-                          ))}
+                        )}
                       </div>
                     </th>
                     <th
@@ -251,12 +280,11 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Date
-                        {sortField === "created_at" &&
-                          (sortDirection === "asc" ? (
-                            <ChevronUp className="h-4 w-4 ml-1" />
-                          ) : (
+                        {sortField === "created_at" && (
+                          sortDirection === "asc" ? 
+                            <ChevronUp className="h-4 w-4 ml-1" /> : 
                             <ChevronDown className="h-4 w-4 ml-1" />
-                          ))}
+                        )}
                       </div>
                     </th>
                     <th
@@ -265,12 +293,11 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Status
-                        {sortField === "status" &&
-                          (sortDirection === "asc" ? (
-                            <ChevronUp className="h-4 w-4 ml-1" />
-                          ) : (
+                        {sortField === "status" && (
+                          sortDirection === "asc" ? 
+                            <ChevronUp className="h-4 w-4 ml-1" /> : 
                             <ChevronDown className="h-4 w-4 ml-1" />
-                          ))}
+                        )}
                       </div>
                     </th>
                     <th className="text-right py-3 px-4 font-medium text-gray-500">Actions</th>
@@ -296,16 +323,22 @@ export default function AdminBlogsPage() {
                         <td className="py-3 px-4 text-right">
                           <div className="flex justify-end gap-2">
                             <Link href={`/blogs/${blog.slug}`} target="_blank">
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" title="View Blog">
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
                             <Link href={`/admin/blogs/${blog.id}/edit`}>
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" title="Edit Blog">
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Button variant="ghost" size="sm" onClick={() => handleStatusToggle(blog.id, blog.status)}>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleStatusToggle(blog.id, blog.status)}
+                              disabled={isMutating}
+                              title={blog.status === "published" ? "Unpublish" : "Publish"}
+                            >
                               <div
                                 className={`h-4 w-8 rounded-full relative ${
                                   blog.status === "published" ? "bg-green-500" : "bg-gray-300"
@@ -323,6 +356,8 @@ export default function AdminBlogsPage() {
                               size="sm"
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
                               onClick={() => handleDelete(blog.id)}
+                              disabled={isMutating}
+                              title="Delete Blog"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -333,8 +368,22 @@ export default function AdminBlogsPage() {
                   ) : (
                     <tr>
                       <td colSpan={6} className="py-6 text-center text-gray-500">
-                        No blogs found.{" "}
-                        {isTableMissing ? "Please set up the database tables first." : "Create your first blog post!"}
+                        {isTableMissing ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <p>Database tables are not set up yet.</p>
+                            <Button 
+                              onClick={() => router.push('/admin/settings')} 
+                              variant="outline" 
+                              className="mt-2"
+                            >
+                              Go to Settings
+                            </Button>
+                          </div>
+                        ) : error ? (
+                          <div>Error loading blogs: {error}</div>
+                        ) : (
+                          <div>No blogs found. Create your first blog post!</div>
+                        )}
                       </td>
                     </tr>
                   )}
