@@ -1,68 +1,73 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Mail, Phone, Calendar, Building, MessageSquare, Trash2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
-import { toast } from "@/components/ui/use-toast"
-
-interface ContactSubmission {
-  id: number
-  name: string
-  email: string
-  phone?: string
-  company?: string
-  message: string
-  status: string
-  created_at: string
-}
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  Calendar,
+  Building,
+  MessageSquare,
+  Trash2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { toast } from "@/components/ui/use-toast";
+import { ContactSubmission } from "@/lib/schema";
+import { EditLoadingAnimation } from "@/components/loading-animation";
 
 export default function ContactDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const [submission, setSubmission] = useState<ContactSubmission | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [status, setStatus] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
+  const params = useParams();
+  const router = useRouter();
+  const [submission, setSubmission] = useState<ContactSubmission | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    fetchSubmission()
-  }, [])
+    fetchSubmission();
+  }, []);
 
   const fetchSubmission = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch(`/api/contact/${params.id}`)
+      const response = await fetch(`/api/contact/${params.id}`);
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error("Contact submission not found")
+          throw new Error("Contact submission not found");
         }
-        throw new Error(`Failed to fetch contact submission: ${response.status}`)
+        throw new Error(
+          `Failed to fetch contact submission: ${response.status}`
+        );
       }
 
-      const data = await response.json()
-      setSubmission(data)
-      setStatus(data.status || "new")
+      const data = await response.json();
+      setSubmission(data);
+      setStatus(data.status || "new");
     } catch (err) {
-      console.error("Error fetching contact submission:", err)
-      setError(err instanceof Error ? err.message : "Failed to load contact submission details")
+      console.error("Error fetching contact submission:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load contact submission details"
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleStatusChange = async (newStatus: string) => {
-    if (!submission || isUpdating) return
-    
-    setIsUpdating(true)
+    if (!submission || isUpdating) return;
+
+    setIsUpdating(true);
     try {
       // Optimistically update the UI
-      setStatus(newStatus)
+      setStatus(newStatus);
 
       const response = await fetch(`/api/contact/${submission.id}`, {
         method: "PUT",
@@ -71,89 +76,101 @@ export default function ContactDetailPage() {
         },
         body: JSON.stringify({ status: newStatus }),
         credentials: "include", // Include cookies in the request
-      })
+      });
 
       if (!response.ok) {
         // Revert optimistic update on error
-        setStatus(submission.status)
-        const errorData = await response.json()
-        throw new Error(errorData.error || `Failed to update status: ${response.status}`)
+        setStatus(submission.status);
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `Failed to update status: ${response.status}`
+        );
       }
 
-      const responseData = await response.json()
+      const responseData = await response.json();
       // Update the submission with the response data
-      setSubmission(responseData)
+      setSubmission(responseData);
 
       toast({
         title: "Status updated",
         description: `Submission status changed to ${newStatus}.`,
-      })
+      });
     } catch (error) {
-      console.error("Error updating submission status:", error)
+      console.error("Error updating submission status:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update status. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to update status. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   const handleDeleteSubmission = async () => {
-    if (!submission) return
+    if (!submission) return;
 
-    if (confirm("Are you sure you want to delete this contact submission? This action cannot be undone.")) {
-      setIsDeleting(true)
+    if (
+      confirm(
+        "Are you sure you want to delete this contact submission? This action cannot be undone."
+      )
+    ) {
+      setIsDeleting(true);
       try {
         const response = await fetch(`/api/contact/${submission.id}`, {
           method: "DELETE",
-        })
+        });
 
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || `Failed to delete submission: ${response.status}`)
+          const errorData = await response.json();
+          throw new Error(
+            errorData.error || `Failed to delete submission: ${response.status}`
+          );
         }
 
         toast({
           title: "Submission deleted",
           description: "The contact submission has been successfully deleted.",
-        })
+        });
 
-        router.push("/admin/contact")
+        router.push("/admin/contact");
       } catch (error) {
-        console.error("Error deleting submission:", error)
+        console.error("Error deleting submission:", error);
         toast({
           title: "Error",
-          description: error instanceof Error ? error.message : "Failed to delete submission. Please try again.",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to delete submission. Please try again.",
           variant: "destructive",
-        })
+        });
       } finally {
-        setIsDeleting(false)
+        setIsDeleting(false);
       }
     }
-  }
+  };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-DEFAULT"></div>
-      </div>
-    )
+    return <EditLoadingAnimation />;
   }
 
   if (error || !submission) {
     return (
       <div className="text-center py-12">
-        <p className="text-lg text-gray-600">{error || "Contact submission not found"}</p>
+        <p className="text-lg text-gray-600">
+          {error || "Contact submission not found"}
+        </p>
         <Link href="/admin/contact">
           <Button className="mt-4">Back to Contact Submissions</Button>
         </Link>
       </div>
-    )
+    );
   }
 
-  const statusOptions = ["new", "read", "replied", "archived"]
+  const statusOptions = ["new", "read", "replied", "archived"];
 
   return (
     <div>
@@ -188,7 +205,10 @@ export default function ContactDetailPage() {
                     <Mail className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />
                     <div>
                       <p className="text-sm text-gray-500">Email</p>
-                      <a href={`mailto:${submission.email}`} className="font-medium text-blue-600 hover:underline">
+                      <a
+                        href={`mailto:${submission.email}`}
+                        className="font-medium text-blue-600 hover:underline"
+                      >
                         {submission.email}
                       </a>
                     </div>
@@ -198,7 +218,10 @@ export default function ContactDetailPage() {
                       <Phone className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />
                       <div>
                         <p className="text-sm text-gray-500">Phone</p>
-                        <a href={`tel:${submission.phone}`} className="font-medium">
+                        <a
+                          href={`tel:${submission.phone}`}
+                          className="font-medium"
+                        >
                           {submission.phone}
                         </a>
                       </div>
@@ -219,7 +242,9 @@ export default function ContactDetailPage() {
                     <Calendar className="h-5 w-5 mr-2 text-gray-500 mt-0.5" />
                     <div>
                       <p className="text-sm text-gray-500">Submitted Date</p>
-                      <p className="font-medium">{new Date(submission.created_at).toLocaleDateString()}</p>
+                      <p className="font-medium">
+                        {new Date(submission.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -232,7 +257,9 @@ export default function ContactDetailPage() {
               <CardTitle>Message</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap">{submission.message}</div>
+              <div className="p-4 bg-gray-50 rounded-md whitespace-pre-wrap">
+                {submission.message}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -252,13 +279,14 @@ export default function ContactDetailPage() {
                       option === "completed" && status === option
                         ? "bg-green-600 hover:bg-green-700"
                         : option === "archived" && status === option
-                          ? "bg-gray-600 hover:bg-gray-700"
-                          : ""
+                        ? "bg-gray-600 hover:bg-gray-700"
+                        : ""
                     }`}
                     onClick={() => handleStatusChange(option)}
                     disabled={isUpdating}
                   >
-                    {option.replace("_", " ").charAt(0).toUpperCase() + option.replace("_", " ").slice(1)}
+                    {option.replace("_", " ").charAt(0).toUpperCase() +
+                      option.replace("_", " ").slice(1)}
                   </Button>
                 ))}
               </div>
@@ -275,8 +303,10 @@ export default function ContactDetailPage() {
                   className="w-full"
                   variant="outline"
                   onClick={() => {
-                    const mailtoUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(submission.email)}`
-                    window.open(mailtoUrl, "_blank")
+                    const mailtoUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+                      submission.email
+                    )}`;
+                    window.open(mailtoUrl, "_blank");
                   }}
                 >
                   <Mail className="h-4 w-4 mr-2" /> Reply via Email
@@ -287,7 +317,8 @@ export default function ContactDetailPage() {
                   onClick={handleDeleteSubmission}
                   disabled={isDeleting}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" /> {isDeleting ? "Deleting..." : "Delete Submission"}
+                  <Trash2 className="h-4 w-4 mr-2" />{" "}
+                  {isDeleting ? "Deleting..." : "Delete Submission"}
                 </Button>
               </div>
             </CardContent>
@@ -295,5 +326,5 @@ export default function ContactDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

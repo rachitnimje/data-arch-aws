@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
 import Link from "next/link"
+import { EditLoadingAnimation } from "@/components/loading-animation"
 
 export default function EditJobPage() {
   const params = useParams()
@@ -148,11 +149,7 @@ export default function EditJobPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-DEFAULT"></div>
-      </div>
-    )
+    <EditLoadingAnimation />
   }
 
   return (
@@ -174,13 +171,13 @@ export default function EditJobPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="title" className="block text-m font-medium text-gray-700 mb-1">
                   Job Title *
                 </label>
                 <Input id="title" name="title" value={formData.title} onChange={handleChange} required />
               </div>
               <div>
-                <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="department" className="block text-m font-medium text-gray-700 mb-1">
                   Department *
                 </label>
                 <Input
@@ -193,13 +190,13 @@ export default function EditJobPage() {
                 />
               </div>
               <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="location" className="block text-m font-medium text-gray-700 mb-1">
                   Location *
                 </label>
                 <Input id="location" name="location" value={formData.location} onChange={handleChange} required />
               </div>
               <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="type" className="block text-m font-medium text-gray-700 mb-1">
                   Job Type *
                 </label>
                 <select
@@ -219,7 +216,7 @@ export default function EditJobPage() {
             </div>
 
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="status" className="block text-m font-medium text-gray-700 mb-1">
                 Status
               </label>
               <select
@@ -236,7 +233,7 @@ export default function EditJobPage() {
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="description" className="block text-m font-medium text-gray-700 mb-1">
                 Job Description *
               </label>
               <textarea
@@ -250,7 +247,7 @@ export default function EditJobPage() {
             </div>
 
             <div>
-              <label htmlFor="responsibilities" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="responsibilities" className="block text-m font-medium text-gray-700 mb-1">
                 Responsibilities *
               </label>
               <textarea
@@ -266,7 +263,7 @@ export default function EditJobPage() {
             </div>
 
             <div>
-              <label htmlFor="requirements" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="requirements" className="block text-m font-medium text-gray-700 mb-1">
                 Requirements *
               </label>
               <textarea
@@ -282,7 +279,7 @@ export default function EditJobPage() {
             </div>
 
             <div>
-              <label htmlFor="benefits" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="benefits" className="block text-m font-medium text-gray-700 mb-1">
                 Benefits *
               </label>
               <textarea

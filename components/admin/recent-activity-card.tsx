@@ -1,24 +1,67 @@
 "use client"
 
+import { memo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bell, Inbox } from "lucide-react"
+import { Bell, Inbox, LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { LoadingAnimation } from "../loading-animation"
 
 interface RecentActivityProps {
-  newApplicationsCount?: number
-  newContactsCount?: number
-  isLoading?: boolean
+  newApplicationsCount: number
+  newContactsCount: number
+  isLoading: boolean
 }
 
-export default function RecentActivityCard({ 
-  newApplicationsCount = 0, 
-  newContactsCount = 0,
-  isLoading = false 
-}: RecentActivityProps) {
-  const router = useRouter()
+interface NotificationItemProps {
+  count: number
+  type: string
+  icon: React.ElementType // Type for dynamic Lucide icons
+  bgColor: string
+  borderColor: string
+  textColor: string
+  redirectPath: string
+}
 
+// Memoize the component to prevent unnecessary re-renders
+const RecentActivityCard = memo(({
+  newApplicationsCount = 0,
+  newContactsCount = 0,
+  isLoading = false
+}: RecentActivityProps) => {
+  const router = useRouter()
   const hasNewItems = newApplicationsCount > 0 || newContactsCount > 0
+  
+  // Extracted notification card to separate component for better readability
+  const NotificationItem = ({ 
+    count, 
+    type, 
+    icon: Icon, 
+    bgColor, 
+    borderColor, 
+    textColor, 
+    redirectPath 
+  }: NotificationItemProps) => (
+    <div className={`p-4 rounded-md ${bgColor} ${borderColor} ${textColor}`}>
+      <div className="flex items-start">
+        <Icon className="h-5 w-5 mr-2 mt-0.5" />
+        <div className="flex-1">
+          <p className="font-medium">{type}</p>
+          <p className="text-sm">
+            You have {count} new {type.toLowerCase()}{count !== 1 ? "s" : ""} to review.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-2 bg-white"
+          onClick={() => router.push(redirectPath)}
+        >
+          View
+        </Button>
+      </div>
+    </div>
+  )
 
   return (
     <Card>
@@ -28,54 +71,30 @@ export default function RecentActivityCard({
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex justify-center py-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-purple-DEFAULT"></div>
-          </div>
+          <LoadingAnimation />
         ) : hasNewItems ? (
           <div className="space-y-4">
             {newApplicationsCount > 0 && (
-              <div className="p-4 rounded-md bg-blue-50 border border-blue-200 text-blue-700">
-                <div className="flex items-start">
-                  <Bell className="h-5 w-5 mr-2 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-medium">New Job Applications</p>
-                    <p className="text-sm">
-                      You have {newApplicationsCount} new job application{newApplicationsCount !== 1 ? "s" : ""} to
-                      review.
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-2 bg-white"
-                    onClick={() => router.push("/admin/applications?status=new")}
-                  >
-                    View
-                  </Button>
-                </div>
-              </div>
+              <NotificationItem
+                count={newApplicationsCount}
+                type="Job Application"
+                icon={Bell}
+                bgColor="bg-blue-50"
+                borderColor="border border-blue-200"
+                textColor="text-blue-700"
+                redirectPath="/admin/applications?status=new"
+              />
             )}
-
             {newContactsCount > 0 && (
-              <div className="p-4 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-700">
-                <div className="flex items-start">
-                  <Inbox className="h-5 w-5 mr-2 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-medium">New Contact Submissions</p>
-                    <p className="text-sm">
-                      You have {newContactsCount} new contact submission{newContactsCount !== 1 ? "s" : ""} to review.
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-2 bg-white"
-                    onClick={() => router.push("/admin/contact?status=new")}
-                  >
-                    View
-                  </Button>
-                </div>
-              </div>
+              <NotificationItem
+                count={newContactsCount}
+                type="Contact Submission"
+                icon={Inbox}
+                bgColor="bg-yellow-50"
+                borderColor="border border-yellow-200"
+                textColor="text-yellow-700"
+                redirectPath="/admin/contact?status=new"
+              />
             )}
           </div>
         ) : (
@@ -86,4 +105,8 @@ export default function RecentActivityCard({
       </CardContent>
     </Card>
   )
-}
+})
+
+RecentActivityCard.displayName = "RecentActivityCard"
+
+export default RecentActivityCard

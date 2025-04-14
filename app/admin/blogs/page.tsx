@@ -1,103 +1,120 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
-import { Plus, Search, Edit, Trash2, Eye, ChevronDown, ChevronUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import Link from "next/link"
-import { toast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
-import type { Blog } from "@/lib/schema"
+import { useState, useEffect, useCallback } from "react";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import { toast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
+import type { Blog } from "@/lib/schema";
+import { LoadingAnimation } from "@/components/loading-animation";
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 10;
 
 export default function AdminBlogsPage() {
-  const [blogs, setBlogs] = useState<Blog[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [sortField, setSortField] = useState<keyof Blog | null>("created_at")
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isTableMissing, setIsTableMissing] = useState(false)
-  const [isMutating, setIsMutating] = useState(false)
-  
-  const router = useRouter()
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortField, setSortField] = useState<keyof Blog | null>("created_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isTableMissing, setIsTableMissing] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
+
+  const router = useRouter();
 
   const fetchBlogs = async () => {
-    setIsLoading(true)
-    setError(null)
-    setIsTableMissing(false)
+    setIsLoading(true);
+    setError(null);
+    setIsTableMissing(false);
 
     try {
-      const response = await fetch("/api/blogs")
+      const response = await fetch("/api/blogs");
 
       // Check if the table is missing based on the special header
       if (response.headers.get("X-Table-Missing") === "true") {
-        setIsTableMissing(true)
-        setBlogs([])
-        setIsLoading(false)
-        return
+        setIsTableMissing(true);
+        setBlogs([]);
+        setIsLoading(false);
+        return;
       }
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error("API error response:", errorData)
+        const errorData = await response.json().catch(() => ({}));
+        console.error("API error response:", errorData);
 
         // Check if the error message indicates a missing table
-        if (errorData.error && errorData.error.includes("relation") && errorData.error.includes("does not exist")) {
-          setIsTableMissing(true)
-          setBlogs([])
-          setIsLoading(false)
-          return
+        if (
+          errorData.error &&
+          errorData.error.includes("relation") &&
+          errorData.error.includes("does not exist")
+        ) {
+          setIsTableMissing(true);
+          setBlogs([]);
+          setIsLoading(false);
+          return;
         }
 
-        throw new Error(errorData.error || `API error: ${response.status}`)
+        throw new Error(errorData.error || `API error: ${response.status}`);
       }
 
-      const data = await response.json()
-      setBlogs(data)
+      const data = await response.json();
+      setBlogs(data);
     } catch (err) {
-      console.error("Error fetching blogs:", err)
+      console.error("Error fetching blogs:", err);
 
       // Check if the error message indicates a missing table
-      const errorMessage = err instanceof Error ? err.message : "Failed to load blog posts"
-      if (errorMessage.includes("relation") && errorMessage.includes("does not exist")) {
-        setIsTableMissing(true)
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load blog posts";
+      if (
+        errorMessage.includes("relation") &&
+        errorMessage.includes("does not exist")
+      ) {
+        setIsTableMissing(true);
       } else {
-        setError(errorMessage)
+        setError(errorMessage);
       }
 
-      setBlogs([])
+      setBlogs([]);
 
       toast({
         title: "Error",
         description: "Failed to load blog posts.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Load blogs on mount
   useEffect(() => {
-    fetchBlogs()
-  }, [])
+    fetchBlogs();
+  }, []);
 
   // Function to filter and sort blogs client-side (matching original functionality)
   const filteredBlogs = blogs
     .filter((blog) => {
       if (!searchTerm) return true;
-      
+
       return (
         blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         blog.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
         blog.category.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      );
     })
     .sort((a, b) => {
-      if (!sortField) return 0
+      if (!sortField) return 0;
 
       const fieldA = a[sortField] as string | number | null;
       const fieldB = b[sortField] as string | number | null;
@@ -108,59 +125,59 @@ export default function AdminBlogsPage() {
       if (fieldB === null) return sortDirection === "asc" ? -1 : 1;
 
       // Compare values based on sort direction
-      if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1
-      if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1
-      return 0
-    })
+      if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1;
+      if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
 
   // Handle sort column click
   const handleSort = (field: keyof Blog) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortDirection("asc")
+      setSortField(field);
+      setSortDirection("asc");
     }
-  }
+  };
 
   // Handle deleting a blog post
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this blog post?")) return
+    if (!confirm("Are you sure you want to delete this blog post?")) return;
 
-    setIsMutating(true)
+    setIsMutating(true);
     try {
       const response = await fetch(`/api/blogs/${id}`, {
         method: "DELETE",
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to delete blog")
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to delete blog");
       }
 
       // Update local state to remove the deleted blog
-      setBlogs(blogs.filter((blog) => blog.id !== id))
-      
+      setBlogs(blogs.filter((blog) => blog.id !== id));
+
       toast({
         title: "Blog deleted",
         description: "The blog post has been successfully deleted.",
-      })
+      });
     } catch (error) {
-      console.error("Error deleting blog:", error)
+      console.error("Error deleting blog:", error);
       toast({
         title: "Error",
         description: "Failed to delete blog post. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsMutating(false)
+      setIsMutating(false);
     }
-  }
+  };
 
   // Handle toggling blog status
   const handleStatusToggle = async (id: number, currentStatus: string) => {
-    const newStatus = currentStatus === "published" ? "draft" : "published"
-    setIsMutating(true)
+    const newStatus = currentStatus === "published" ? "draft" : "published";
+    setIsMutating(true);
 
     try {
       const response = await fetch(`/api/blogs/${id}`, {
@@ -169,33 +186,37 @@ export default function AdminBlogsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ status: newStatus }),
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to update blog status")
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to update blog status");
       }
 
       // Update local state to reflect the status change
-      setBlogs(blogs.map((blog) => 
-        blog.id === id ? { ...blog, status: newStatus as "published" | "draft" } : blog
-      ))
+      setBlogs(
+        blogs.map((blog) =>
+          blog.id === id
+            ? { ...blog, status: newStatus as "published" | "draft" }
+            : blog
+        )
+      );
 
       toast({
         title: "Status updated",
         description: "The blog status has been updated successfully.",
-      })
+      });
     } catch (error) {
-      console.error("Error updating blog status:", error)
+      console.error("Error updating blog status:", error);
       toast({
         title: "Error",
         description: "Failed to update blog status. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsMutating(false)
+      setIsMutating(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -227,9 +248,7 @@ export default function AdminBlogsPage() {
 
           {/* Loading state */}
           {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-            </div>
+            <LoadingAnimation />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -241,11 +260,12 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Title
-                        {sortField === "title" && (
-                          sortDirection === "asc" ? 
-                            <ChevronUp className="h-4 w-4 ml-1" /> : 
+                        {sortField === "title" &&
+                          (sortDirection === "asc" ? (
+                            <ChevronUp className="h-4 w-4 ml-1" />
+                          ) : (
                             <ChevronDown className="h-4 w-4 ml-1" />
-                        )}
+                          ))}
                       </div>
                     </th>
                     <th
@@ -254,11 +274,12 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Author
-                        {sortField === "author" && (
-                          sortDirection === "asc" ? 
-                            <ChevronUp className="h-4 w-4 ml-1" /> : 
+                        {sortField === "author" &&
+                          (sortDirection === "asc" ? (
+                            <ChevronUp className="h-4 w-4 ml-1" />
+                          ) : (
                             <ChevronDown className="h-4 w-4 ml-1" />
-                        )}
+                          ))}
                       </div>
                     </th>
                     <th
@@ -267,11 +288,12 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Category
-                        {sortField === "category" && (
-                          sortDirection === "asc" ? 
-                            <ChevronUp className="h-4 w-4 ml-1" /> : 
+                        {sortField === "category" &&
+                          (sortDirection === "asc" ? (
+                            <ChevronUp className="h-4 w-4 ml-1" />
+                          ) : (
                             <ChevronDown className="h-4 w-4 ml-1" />
-                        )}
+                          ))}
                       </div>
                     </th>
                     <th
@@ -280,11 +302,12 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Date
-                        {sortField === "created_at" && (
-                          sortDirection === "asc" ? 
-                            <ChevronUp className="h-4 w-4 ml-1" /> : 
+                        {sortField === "created_at" &&
+                          (sortDirection === "asc" ? (
+                            <ChevronUp className="h-4 w-4 ml-1" />
+                          ) : (
                             <ChevronDown className="h-4 w-4 ml-1" />
-                        )}
+                          ))}
                       </div>
                     </th>
                     <th
@@ -293,14 +316,17 @@ export default function AdminBlogsPage() {
                     >
                       <div className="flex items-center">
                         Status
-                        {sortField === "status" && (
-                          sortDirection === "asc" ? 
-                            <ChevronUp className="h-4 w-4 ml-1" /> : 
+                        {sortField === "status" &&
+                          (sortDirection === "asc" ? (
+                            <ChevronUp className="h-4 w-4 ml-1" />
+                          ) : (
                             <ChevronDown className="h-4 w-4 ml-1" />
-                        )}
+                          ))}
                       </div>
                     </th>
-                    <th className="text-right py-3 px-4 font-medium text-gray-500">Actions</th>
+                    <th className="text-right py-3 px-4 font-medium text-gray-500">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -310,11 +336,15 @@ export default function AdminBlogsPage() {
                         <td className="py-3 px-4">{blog.title}</td>
                         <td className="py-3 px-4">{blog.author}</td>
                         <td className="py-3 px-4">{blog.category}</td>
-                        <td className="py-3 px-4">{new Date(blog.created_at).toLocaleDateString()}</td>
+                        <td className="py-3 px-4">
+                          {new Date(blog.created_at).toLocaleDateString()}
+                        </td>
                         <td className="py-3 px-4">
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
-                              blog.status === "published" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                              blog.status === "published"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
                             }`}
                           >
                             {blog.status}
@@ -323,30 +353,48 @@ export default function AdminBlogsPage() {
                         <td className="py-3 px-4 text-right">
                           <div className="flex justify-end gap-2">
                             <Link href={`/blogs/${blog.slug}`} target="_blank">
-                              <Button variant="ghost" size="sm" title="View Blog">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title="View Blog"
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
                             <Link href={`/admin/blogs/${blog.id}/edit`}>
-                              <Button variant="ghost" size="sm" title="Edit Blog">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title="Edit Blog"
+                              >
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </Link>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleStatusToggle(blog.id, blog.status)}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleStatusToggle(blog.id, blog.status)
+                              }
                               disabled={isMutating}
-                              title={blog.status === "published" ? "Unpublish" : "Publish"}
+                              title={
+                                blog.status === "published"
+                                  ? "Unpublish"
+                                  : "Publish"
+                              }
                             >
                               <div
                                 className={`h-4 w-8 rounded-full relative ${
-                                  blog.status === "published" ? "bg-green-500" : "bg-gray-300"
+                                  blog.status === "published"
+                                    ? "bg-green-500"
+                                    : "bg-gray-300"
                                 }`}
                               >
                                 <div
                                   className={`h-3 w-3 bg-white rounded-full absolute top-0.5 transition-all ${
-                                    blog.status === "published" ? "right-0.5" : "left-0.5"
+                                    blog.status === "published"
+                                      ? "right-0.5"
+                                      : "left-0.5"
                                   }`}
                                 ></div>
                               </div>
@@ -367,13 +415,16 @@ export default function AdminBlogsPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="py-6 text-center text-gray-500">
+                      <td
+                        colSpan={6}
+                        className="py-6 text-center text-gray-500"
+                      >
                         {isTableMissing ? (
                           <div className="flex flex-col items-center gap-2">
                             <p>Database tables are not set up yet.</p>
-                            <Button 
-                              onClick={() => router.push('/admin/settings')} 
-                              variant="outline" 
+                            <Button
+                              onClick={() => router.push("/admin/settings")}
+                              variant="outline"
                               className="mt-2"
                             >
                               Go to Settings
@@ -382,7 +433,9 @@ export default function AdminBlogsPage() {
                         ) : error ? (
                           <div>Error loading blogs: {error}</div>
                         ) : (
-                          <div>No blogs found. Create your first blog post!</div>
+                          <div>
+                            No blogs found. Create your first blog post!
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -394,5 +447,5 @@ export default function AdminBlogsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
