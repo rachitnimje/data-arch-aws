@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import Image from "next/image"
-import Link from "next/link"
-import { Calendar, User, Tag, ArrowRight } from "lucide-react"
-import type { Blog } from "@/lib/supabase"
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { Calendar, User, Tag, ArrowRight } from "lucide-react";
+import type { Blog } from "@/lib/supabase";
 
 interface BlogCardProps {
-  post: Blog
-  index: number
+  post: Blog;
+  index: number;
 }
 
 export default function BlogCard({ post, index }: BlogCardProps) {
@@ -36,7 +36,9 @@ export default function BlogCard({ post, index }: BlogCardProps) {
       <div className="p-6">
         <div className="flex items-center text-sm text-gray-500 mb-3">
           <Calendar className="h-4 w-4 mr-1" />
-          <span className="mr-4">{new Date(post.created_at).toLocaleDateString()}</span>
+          <span className="mr-4">
+            {new Date(post.created_at).toLocaleDateString()}
+          </span>
           <User className="h-4 w-4 mr-1" />
           <span>{post.author}</span>
         </div>
@@ -48,7 +50,10 @@ export default function BlogCard({ post, index }: BlogCardProps) {
           {post.tags &&
             Array.isArray(post.tags) &&
             post.tags.slice(0, 3).map((tag, i) => (
-              <div key={i} className="flex items-center text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+              <div
+                key={i}
+                className="flex items-center text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+              >
                 <Tag className="h-3 w-3 mr-1" />
                 {tag}
               </div>
@@ -62,5 +67,5 @@ export default function BlogCard({ post, index }: BlogCardProps) {
         </Link>
       </div>
     </motion.article>
-  )
+  );
 }

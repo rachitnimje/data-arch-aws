@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback, useMemo, Suspense } from "react"
-import { motion } from "framer-motion"
-import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
-import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import type { Blog } from "@/lib/supabase"
-import dynamic from "next/dynamic"
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { motion } from "framer-motion";
+import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import type { Blog } from "@/lib/supabase";
+import dynamic from "next/dynamic";
 
 // Dynamically import the BlogCard component
 const BlogCard = dynamic(() => import("@/components/blogs/blog-card"), {
   loading: () => <BlogCardSkeleton />,
   ssr: true,
-})
+});
 
 // Skeleton component for blog cards
 function BlogCardSkeleton() {
@@ -38,17 +38,17 @@ function BlogCardSkeleton() {
         <div className="h-4 w-24 bg-gray-200 rounded"></div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function BlogsPage() {
-  const [blogPosts, setBlogPosts] = useState<Blog[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("All")
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
-  const [categories, setCategories] = useState<string[]>(["All"])
+  const [blogPosts, setBlogPosts] = useState<Blog[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [categories, setCategories] = useState<string[]>(["All"]);
 
   // Memoize fetchBlogs to prevent unnecessary re-renders
   const fetchBlogs = useCallback(async () => {
@@ -84,24 +84,27 @@ export default function BlogsPage() {
     }
   }, [])
 
+  
+
   useEffect(() => {
-    fetchBlogs()
-  }, [fetchBlogs, retryCount])
+    fetchBlogs();
+  }, [fetchBlogs, retryCount]);
 
   // Memoize filtered posts to avoid recalculation on every render
   const filteredPosts = useMemo(() => {
     return blogPosts.filter((post) => {
       const matchesSearch =
         post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.excerpt?.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesCategory = selectedCategory === "All" || post.category === selectedCategory
-      return matchesSearch && matchesCategory
-    })
-  }, [blogPosts, searchTerm, selectedCategory])
+        post.excerpt?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "All" || post.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [blogPosts, searchTerm, selectedCategory]);
 
   const handleRetry = () => {
-    setRetryCount((prev) => prev + 1)
-  }
+    setRetryCount((prev) => prev + 1);
+  };
 
   return (
     <main className="min-h-screen">
@@ -124,7 +127,8 @@ export default function BlogsPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Insights, best practices, and expert perspectives on data architecture, cloud transformation, and analytics.
+            Insights, best practices, and expert perspectives on data
+            architecture, cloud transformation, and analytics.
           </motion.p>
 
           <motion.div
@@ -193,12 +197,14 @@ export default function BlogsPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-lg text-gray-600">No articles found matching your search criteria.</p>
+              <p className="text-lg text-gray-600">
+                No articles found matching your search criteria.
+              </p>
               <Button
                 className="mt-4"
                 onClick={() => {
-                  setSearchTerm("")
-                  setSelectedCategory("All")
+                  setSearchTerm("");
+                  setSelectedCategory("All");
                 }}
               >
                 Reset Filters
@@ -210,5 +216,5 @@ export default function BlogsPage() {
 
       <Footer />
     </main>
-  )
+  );
 }

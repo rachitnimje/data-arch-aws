@@ -29,3 +29,18 @@ export interface JobApplication {
   notes?: string
   created_at: string
 }
+
+export interface Blog {
+  id: number
+  title: string
+  slug: string
+  excerpt: string
+  content: string
+  author: string
+  category: string
+  tags: string[]
+  featured_image: string | null
+  status: "published" | "draft"
+  created_at: string 
+  updated_at: string 
+}
