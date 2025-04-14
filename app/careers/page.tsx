@@ -108,7 +108,7 @@ export default function CareersPage() {
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Join Our <span className="gradient-text">Team</span>
             </h1>
-            <p className="text-lg text-gray-700 mb-8">
+            <p className="text-lg text-gray-700">
               Find your next career opportunity at DataArch and help us transform how businesses leverage their data
             </p>
           </motion.div>

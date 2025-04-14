@@ -84,8 +84,6 @@ export default function BlogsPage() {
     }
   }, [])
 
-  
-
   useEffect(() => {
     fetchBlogs();
   }, [fetchBlogs, retryCount]);
@@ -111,7 +109,7 @@ export default function BlogsPage() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 text-center">
+      <section className="pt-32 pb-0 text-center">
         <div className="container mx-auto px-4">
           <motion.h1
             className="text-4xl md:text-5xl font-bold mb-6"
@@ -157,7 +155,7 @@ export default function BlogsPage() {
               <Button
                 key={index}
                 variant={selectedCategory === category ? "default" : "outline"}
-                className={`rounded-full px-4 py-2 ${
+                className={`rounded-full px-4 py-0 ${
                   selectedCategory === category
                     ? "bg-gradient-to-r from-blue-DEFAULT to-purple-DEFAULT text-white"
                     : "border-gray-300 text-gray-700"
@@ -172,8 +170,8 @@ export default function BlogsPage() {
       </section>
 
       {/* Blog Posts */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
+      <section className="pt-10">
+        <div className="container mx-auto">
           {isLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(6)].map((_, index) => (
