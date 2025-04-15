@@ -57,3 +57,17 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   status TEXT NOT NULL DEFAULT 'new'
 );
+
+-- Create users table if it doesn't exist
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL NOT NULL,
+  username TEXT NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'admin'::text,
+  created_at TIMESTAMP WITH TIME ZONE NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NULL DEFAULT now(),
+  CONSTRAINT users_pkey PRIMARY KEY (id),
+  CONSTRAINT users_username_key UNIQUE (username)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_users_username on public.users using btree (username) TABLESPACE pg_default;
