@@ -73,7 +73,7 @@ export default function AdminJobsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (confirm("Are you sure you want to delete this job post?")) {
       try {
         const response = await fetch(`/api/jobs/${id}`, {
@@ -117,7 +117,7 @@ export default function AdminJobsPage() {
     }
   };
 
-  const handleStatusToggle = async (id: string) => {
+  const handleStatusToggle = async (id: number) => {
     const job = jobs.find((j) => j.id === id);
     if (!job) return;
 
