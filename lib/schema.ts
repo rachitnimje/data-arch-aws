@@ -40,7 +40,7 @@ export interface Blog {
   category: string;
   tags: string[];
   featured_image: string | null;
-  status: "published" | "draft";
+  status: string;
   created_at: string;
   updated_at: string;
 }

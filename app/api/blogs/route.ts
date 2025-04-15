@@ -54,13 +54,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Build the query for full data
-    const data = await prisma.blogs.findMany({
+    const rawData = await prisma.blogs.findMany({
       select: {
         id: true,
         title: true,
         slug: true,
         excerpt: true,
-        content: true,  // Added content to match Blog interface
+        content: true,
         author: true,
         category: true,
         tags: true,
@@ -78,7 +78,20 @@ export async function GET(request: NextRequest) {
       },
       skip: offset,
       take: pageSize,
-    }) as Blog[];  // Cast the result to Blog[]
+    })
+    
+    // Convert Date objects to strings and validate status to match the Blog interface
+    const data = rawData.map(blog => ({
+      ...blog,
+      created_at: blog.created_at.toISOString(),
+      updated_at: blog.updated_at.toISOString(),
+      excerpt: blog.excerpt || "",
+      author: blog.author || "",
+      // Ensure status is either "published" or "draft"
+      status: (blog.status === "published" || blog.status === "draft") 
+        ? blog.status as "published" | "draft"
+        : "draft" // Default to draft if invalid status
+    })) as Blog[];
 
     // Store in cache
     setCachedData(blogsCache, cacheKey, data || [])
@@ -142,22 +155,40 @@ export async function POST(request: NextRequest) {
       tags = body.tags.map((tag: string) => tag.trim()).filter(Boolean)
     }
 
+    // Validate status
+    const status = body.status && ["published", "draft"].includes(body.status) 
+      ? body.status as "published" | "draft" 
+      : "draft"
+
     try {
-      const data = await prisma.blogs.create({
+      const newBlog = await prisma.blogs.create({
         data: {
           title: sanitizedTitle,
           slug,
           excerpt: sanitizedExcerpt,
           content: sanitizedContent,
           category: sanitizedCategory,
-          author: sanitizedAuthor,
+          author: sanitizedAuthor || "", // Ensure author is not undefined
           tags,
           featured_image: body.featured_image || null,
-          status: body.status || "draft",
+          status,
           created_at: new Date(),
           updated_at: new Date(),
         },
-      }) as unknown as Blog;  // Cast to Blog type
+      })
+      
+      // Convert Date objects to strings to match Blog interface
+      const data = {
+        ...newBlog,
+        created_at: newBlog.created_at.toISOString(),
+        updated_at: newBlog.updated_at.toISOString(),
+        excerpt: newBlog.excerpt || "",
+        author: newBlog.author || "",
+        // Ensure status is either "published" or "draft"
+        status: (newBlog.status === "published" || newBlog.status === "draft")
+          ? newBlog.status as "published" | "draft"
+          : "draft"
+      } as Blog;
 
       // Revalidate the blogs page to update the cache
       revalidatePath("/blogs");
