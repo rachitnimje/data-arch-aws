@@ -20,6 +20,7 @@ export function HeroSection() {
     let particles: Particle[] = []
 
     const resizeCanvas = () => {
+      if (!canvas) return // Add null check here
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
       initParticles()
@@ -34,8 +35,9 @@ export function HeroSection() {
       color: string
 
       constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
+        // Add null checks for canvas references
+        this.x = Math.random() * (canvas?.width || window.innerWidth)
+        this.y = Math.random() * (canvas?.height || window.innerHeight)
         this.size = Math.random() * 3 + 1
         this.speedX = Math.random() * 0.5 - 0.25
         this.speedY = Math.random() * 0.5 - 0.25
@@ -43,6 +45,7 @@ export function HeroSection() {
       }
 
       update() {
+        if (!canvas) return // Add null check
         this.x += this.speedX
         this.y += this.speedY
 
@@ -63,6 +66,7 @@ export function HeroSection() {
     }
 
     function initParticles() {
+      if (!canvas) return // Add null check
       particles = []
       const particleCount = Math.min(Math.floor(window.innerWidth * 0.05), 100)
       for (let i = 0; i < particleCount; i++) {
@@ -71,7 +75,7 @@ export function HeroSection() {
     }
 
     function connectParticles() {
-      if (!ctx) return
+      if (!ctx || !canvas) return // Add null check for canvas
       const maxDistance = 150
       for (let i = 0; i < particles.length; i++) {
         for (let j = i; j < particles.length; j++) {
@@ -93,7 +97,7 @@ export function HeroSection() {
     }
 
     function animate() {
-      if (!ctx) return
+      if (!ctx || !canvas) return // Add null check for canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       particles.forEach((particle) => {
