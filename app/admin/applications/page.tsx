@@ -219,18 +219,26 @@ export default function AdminApplicationsPage() {
         return matchesSearch && matchesStatus;
       })
       .sort((a, b) => {
-        // Fix for potentially undefined values
+        // Fix for potentially null values
         const fieldA = a[sortField];
         const fieldB = b[sortField];
 
-        // Handle cases where the fields might be undefined
-        if (fieldA === undefined && fieldB === undefined) return 0;
-        if (fieldA === undefined) return sortDirection === "asc" ? -1 : 1;
-        if (fieldB === undefined) return sortDirection === "asc" ? 1 : -1;
-
-        // Normal comparison when both values exist
-        if (fieldA < fieldB) return sortDirection === "asc" ? -1 : 1;
-        if (fieldA > fieldB) return sortDirection === "asc" ? 1 : -1;
+        // Safely handle null, undefined, and different types for comparison
+        // If both values are null or undefined, they're considered equal
+        if (fieldA == null && fieldB == null) return 0;
+        
+        // Handle cases where one value is null/undefined
+        if (fieldA == null) return sortDirection === "asc" ? -1 : 1;
+        if (fieldB == null) return sortDirection === "asc" ? 1 : -1;
+        
+        // Convert to strings for consistent comparison
+        // This handles mixed types (string, number, boolean)
+        const valueA = String(fieldA).toLowerCase();
+        const valueB = String(fieldB).toLowerCase();
+        
+        // Normal string comparison
+        if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
+        if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
         return 0;
       });
   }, [applications, searchTerm, filterStatus, sortField, sortDirection]);

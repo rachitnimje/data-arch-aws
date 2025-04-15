@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build the query for data retrieval
-    const data = (await prisma.job_applications.findMany({
+    const dbData = await prisma.job_applications.findMany({
       where: {
         ...(status ? { status } : {}),
         ...(jobId ? { job_id: parseInt(jobId, 10) } : {}),
@@ -64,7 +64,13 @@ export async function GET(request: NextRequest) {
       },
       skip: offset,
       take: limit,
-    })) as JobApplication[];
+    });
+
+    // Transform only the date format, keeping job_id as number
+    const data: JobApplication[] = dbData.map(app => ({
+      ...app,
+      created_at: app.created_at.toISOString(), // Convert Date to string to match interface
+    }));
 
     return NextResponse.json(data);
   } catch (error) {
@@ -144,9 +150,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const data = (await prisma.job_applications.create({
+    const dbData = await prisma.job_applications.create({
       data: {
-        job_id: jobId, // Now correctly passed as a number
+        job_id: jobId, // Correctly passed as a number for the database
         first_name: applicationData.first_name.toString(),
         last_name: applicationData.last_name.toString(),
         email: applicationData.email.toString(),
@@ -159,7 +165,13 @@ export async function POST(request: NextRequest) {
         status: "new",
         created_at: new Date(),
       },
-    })) as unknown as JobApplication;
+    });
+
+    // Only transform the date field, keeping job_id as number
+    const data: JobApplication = {
+      ...dbData,
+      created_at: dbData.created_at.toISOString(), // Convert Date to string
+    };
 
     return NextResponse.json(data, { status: 201 });
   } catch (error: unknown) {

@@ -16,17 +16,17 @@ export interface Job {
 
 export interface JobApplication {
   id: number;
-  job_id: string;
+  job_id: number;
   job_title?: string;
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
-  years_experience?: number;
-  current_company?: string;
+  years_experience?: number | null;
+  current_company?: string | null;
   resume_url?: string;
   status: string;
-  notes?: string;
+  notes?: string | null;
   created_at: string;
 }
 
