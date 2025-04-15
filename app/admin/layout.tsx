@@ -111,12 +111,7 @@ export default function AdminLayout({
       name: "Contact Submissions",
       href: "/admin/contact",
       icon: <MessageSquare className="h-5 w-5" />,
-    },
-    {
-      name: "Content Management",
-      href: "/admin/content",
-      icon: <FileText className="h-5 w-5" />,
-    },
+    }
   ];
 
   const isActive = (href: string) => pathname === href;

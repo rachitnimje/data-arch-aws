@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, FileText, MessageSquare, Briefcase, Settings, LucideIcon } from "lucide-react"
+import { Users, FileText, MessageSquare, Briefcase, Settings, RefreshCw } from "lucide-react"
 import RecentActivityCard from "@/components/admin/recent-activity-card"
 import { PasswordChangeModal } from "@/components/admin/password-change-modal"
 import { toast } from "@/components/ui/use-toast"
@@ -95,10 +95,12 @@ export default function AdminDashboard() {
 
   // Card renderer to reduce repetitive code
   const StatCard = ({ title, icon, value, link, linkText }: StatCardProps) => (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon}
+        <div className="text-muted-foreground">
+          {icon}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">
@@ -107,7 +109,7 @@ export default function AdminDashboard() {
             value
           }
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground mt-1 truncate">
           <Link href={link} className="text-blue-600 hover:underline">
             {linkText}
           </Link>
@@ -117,30 +119,35 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="flex gap-2">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+        <div className="flex flex-col xs:flex-row gap-2">
           <Button 
             variant="outline" 
             onClick={() => setIsPasswordModalOpen(true)}
+            className="w-full xs:w-auto justify-center"
+            size="sm"
           >
             <Settings className="h-4 w-4 mr-2" />
-            Change Password
+            <span className="whitespace-nowrap">Change Password</span>
           </Button>
           <Button 
             onClick={handleRefresh} 
             disabled={isLoading}
+            className="w-full xs:w-auto justify-center"
+            size="sm"
           >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             {isLoading ? "Loading..." : "Refresh"}
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
         <StatCard
           title="Total Applications"
-          icon={<Users className="h-4 w-4 text-muted-foreground" />}
+          icon={<Users className="h-4 w-4" />}
           value={dashboardData.totalApplications}
           link="/admin/applications"
           linkText="View all applications"
@@ -148,7 +155,7 @@ export default function AdminDashboard() {
         
         <StatCard
           title="Active Jobs"
-          icon={<Briefcase className="h-4 w-4 text-muted-foreground" />}
+          icon={<Briefcase className="h-4 w-4" />}
           value={dashboardData.totalJobs}
           link="/admin/jobs"
           linkText="Manage job listings"
@@ -156,7 +163,7 @@ export default function AdminDashboard() {
         
         <StatCard
           title="Published Blogs"
-          icon={<FileText className="h-4 w-4 text-muted-foreground" />}
+          icon={<FileText className="h-4 w-4" />}
           value={dashboardData.totalBlogs}
           link="/admin/blogs"
           linkText="Manage blog posts"
@@ -164,7 +171,7 @@ export default function AdminDashboard() {
         
         <StatCard
           title="Contact Submissions"
-          icon={<MessageSquare className="h-4 w-4 text-muted-foreground" />}
+          icon={<MessageSquare className="h-4 w-4" />}
           value={dashboardData.totalContacts}
           link="/admin/contact"
           linkText="View contact submissions"
