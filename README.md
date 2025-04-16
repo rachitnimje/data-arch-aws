@@ -26,6 +26,8 @@ A modern web application built with Next.js, Prisma ORM, AWS RDS PostgreSQL and 
 - **AWS Integration**: S3 for file storage, RDS for PostgreSQL database
 - **Responsive UI**: Modern design with Tailwind CSS and custom components
 
+- **Important** : Only account with username `admin` can create new admin accounts, so ensure that the user entry is present in table (insert statement is present in `database-schema.sql` file).
+
 ## Project Structure
 
 ```

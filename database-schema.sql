@@ -71,3 +71,6 @@ CREATE TABLE IF NOT EXISTS users (
 ) TABLESPACE pg_default;
 
 create index IF not exists idx_users_username on public.users using btree (username) TABLESPACE pg_default;
+
+INSERT INTO users (username, password, role) 
+  VALUES ('admin', '$2b$12$P/16d19hoeq4tV3AiTbxzum.DZUFc2X.ekAeoFK4xZ68UCq5Am3Wi', 'admin');
