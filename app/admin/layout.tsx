@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   MessageSquare,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -111,6 +112,11 @@ export default function AdminLayout({
       name: "Contact Submissions",
       href: "/admin/contact",
       icon: <MessageSquare className="h-5 w-5" />,
+    },
+    {
+      name: "Create Account",
+      href: "/admin/create-account",
+      icon: <User className="h-5 w-5" />,
     }
   ];
 

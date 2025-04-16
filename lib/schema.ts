@@ -55,3 +55,12 @@ export interface ContactSubmission {
   created_at: string;
   status: string;
 }
+
+export interface User {
+  id: number;
+  username: string;
+  password: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+}
