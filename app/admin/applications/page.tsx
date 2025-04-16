@@ -16,6 +16,7 @@ import { toast } from "@/components/ui/use-toast";
 import type { JobApplication } from "@/lib/schema";
 import { useRouter } from "next/navigation";
 import { LoadingAnimation } from "@/components/loading-animation";
+import { ConfirmDeleteModal } from "@/components/admin/confirm-delete-modal";
 
 export default function AdminApplicationsPage() {
   const [applications, setApplications] = useState<JobApplication[]>([]);
@@ -30,6 +31,9 @@ export default function AdminApplicationsPage() {
   const [isDownloading, setIsDownloading] = useState<Record<number, boolean>>(
     {}
   );
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] = useState<JobApplication | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
   // Use useCallback to memoize the fetch function
@@ -95,11 +99,17 @@ export default function AdminApplicationsPage() {
     });
   }, []);
 
-  const handleDelete = useCallback(async (id: number) => {
-    if (!confirm("Are you sure you want to delete this application?")) return;
+  const handleDeleteClick = useCallback((application: JobApplication) => {
+    setApplicationToDelete(application);
+    setDeleteModalOpen(true);
+  }, []);
 
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!applicationToDelete) return;
+    
+    setIsDeleting(true);
     try {
-      const response = await fetch(`/api/applications/${id}`, {
+      const response = await fetch(`/api/applications/${applicationToDelete.id}`, {
         method: "DELETE",
       });
 
@@ -107,7 +117,7 @@ export default function AdminApplicationsPage() {
         throw new Error(`Failed to delete application: ${response.status}`);
       }
 
-      setApplications((prev) => prev.filter((app) => app.id !== id));
+      setApplications((prev) => prev.filter((app) => app.id !== applicationToDelete.id));
 
       toast({
         title: "Application deleted",
@@ -120,7 +130,16 @@ export default function AdminApplicationsPage() {
         description: "Failed to delete application. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+      setApplicationToDelete(null);
     }
+  }, [applicationToDelete]);
+
+  const handleDeleteCancel = useCallback(() => {
+    setDeleteModalOpen(false);
+    setApplicationToDelete(null);
   }, []);
 
   const handleStatusChange = useCallback(
@@ -467,7 +486,7 @@ export default function AdminApplicationsPage() {
                               variant="ghost"
                               size="sm"
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleDelete(app.id)}
+                              onClick={() => handleDeleteClick(app)}
                               aria-label="Delete application"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -492,6 +511,26 @@ export default function AdminApplicationsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Application"
+        description="Are you sure you want to delete this application? This action cannot be undone."
+        itemDetails={
+          applicationToDelete && (
+            <div className="space-y-2">
+              <p><strong>Applicant:</strong> {applicationToDelete.first_name} {applicationToDelete.last_name}</p>
+              <p><strong>Position:</strong> {applicationToDelete.job_title}</p>
+              <p><strong>Applied on:</strong> {new Date(applicationToDelete.created_at).toLocaleDateString()}</p>
+            </div>
+          )
+        }
+        confirmButtonText="Delete Application"
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }

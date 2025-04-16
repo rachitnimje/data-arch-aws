@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LoadingAnimation } from "@/components/loading-animation";
+import { ConfirmDeleteModal } from "@/components/admin/confirm-delete-modal";
 
 export default function AdminJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -40,6 +41,11 @@ export default function AdminJobsPage() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState("");
   const [errorModalTitle, setErrorModalTitle] = useState("");
+
+  // Delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchJobs();
@@ -73,47 +79,64 @@ export default function AdminJobsPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm("Are you sure you want to delete this job post?")) {
-      try {
-        const response = await fetch(`/api/jobs/${id}`, {
-          method: "DELETE",
-        });
+  const handleDeleteClick = (job: Job) => {
+    setJobToDelete(job);
+    setDeleteModalOpen(true);
+  };
 
-        const data = await response.json();
-        console.log("Delete response:", response.status, data);
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setJobToDelete(null);
+  };
 
-        if (!response.ok) {
-          // Check for foreign key constraint violation
-          if (data.code === "FOREIGN_KEY_CONSTRAINT") {
-            setErrorModalTitle("Cannot Delete Job");
-            setErrorModalMessage(
-              data.message ||
-                "This job has associated applications and cannot be deleted."
-            );
-            setShowErrorModal(true);
-            return;
-          }
+  const handleDeleteConfirm = async () => {
+    if (!jobToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/jobs/${jobToDelete.id}`, {
+        method: "DELETE",
+      });
 
-          throw new Error(
-            `Failed to delete job: ${data.error || response.status}`
+      const data = await response.json();
+      console.log("Delete response:", response.status, data);
+
+      if (!response.ok) {
+        // Check for foreign key constraint violation
+        if (data.code === "FOREIGN_KEY_CONSTRAINT") {
+          setErrorModalTitle("Cannot Delete Job");
+          setErrorModalMessage(
+            data.message ||
+              "This job has associated applications and cannot be deleted."
           );
+          setShowErrorModal(true);
+          setDeleteModalOpen(false);
+          setJobToDelete(null);
+          return;
         }
 
-        setJobs(jobs.filter((job) => job.id !== id));
-
-        toast({
-          title: "Job deleted",
-          description: "The job post has been successfully deleted.",
-        });
-      } catch (error) {
-        console.error("Error deleting job:", error);
-        toast({
-          title: "Error",
-          description: "Failed to delete job post. Please try again.",
-          variant: "destructive",
-        });
+        throw new Error(
+          `Failed to delete job: ${data.error || response.status}`
+        );
       }
+
+      setJobs(jobs.filter((job) => job.id !== jobToDelete.id));
+
+      toast({
+        title: "Job deleted",
+        description: "The job post has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete job post. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+      setJobToDelete(null);
     }
   };
 
@@ -205,6 +228,27 @@ export default function AdminJobsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Job Posting"
+        description="Are you sure you want to delete this job posting? This action cannot be undone."
+        itemDetails={
+          jobToDelete && (
+            <div className="space-y-2">
+              <p><strong>Title:</strong> {jobToDelete.title}</p>
+              <p><strong>Department:</strong> {jobToDelete.department}</p>
+              <p><strong>Location:</strong> {jobToDelete.location}</p>
+              <p><strong>Posted on:</strong> {new Date(jobToDelete.created_at).toLocaleDateString()}</p>
+            </div>
+          )
+        }
+        confirmButtonText="Delete Job"
+        isDeleting={isDeleting}
+      />
 
       <Card className="mb-8">
         <CardContent>
@@ -406,7 +450,7 @@ export default function AdminJobsPage() {
                               variant="ghost"
                               size="sm"
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleDelete(job.id)}
+                              onClick={() => handleDeleteClick(job)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

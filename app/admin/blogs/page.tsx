@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Plus,
   Search,
@@ -18,6 +18,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 import type { Blog } from "@/lib/schema";
 import { LoadingAnimation } from "@/components/loading-animation";
+import { ConfirmDeleteModal } from "@/components/admin/confirm-delete-modal";
 
 const PAGE_SIZE = 10;
 
@@ -30,6 +31,11 @@ export default function AdminBlogsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isTableMissing, setIsTableMissing] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
+  
+  // Delete modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [blogToDelete, setBlogToDelete] = useState<Blog | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const router = useRouter();
 
@@ -140,13 +146,19 @@ export default function AdminBlogsPage() {
     }
   };
 
-  // Handle deleting a blog post
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this blog post?")) return;
+  // Open delete confirmation modal
+  const openDeleteModal = (blog: Blog) => {
+    setBlogToDelete(blog);
+    setIsDeleteModalOpen(true);
+  };
 
-    setIsMutating(true);
+  // Handle deleting a blog post
+  const handleDelete = async () => {
+    if (!blogToDelete) return;
+    
+    setIsDeleting(true);
     try {
-      const response = await fetch(`/api/blogs/${id}`, {
+      const response = await fetch(`/api/blogs/${blogToDelete.id}`, {
         method: "DELETE",
       });
 
@@ -156,12 +168,16 @@ export default function AdminBlogsPage() {
       }
 
       // Update local state to remove the deleted blog
-      setBlogs(blogs.filter((blog) => blog.id !== id));
+      setBlogs(blogs.filter((blog) => blog.id !== blogToDelete.id));
 
       toast({
         title: "Blog deleted",
         description: "The blog post has been successfully deleted.",
       });
+      
+      // Close the modal
+      setIsDeleteModalOpen(false);
+      setBlogToDelete(null);
     } catch (error) {
       console.error("Error deleting blog:", error);
       toast({
@@ -170,7 +186,7 @@ export default function AdminBlogsPage() {
         variant: "destructive",
       });
     } finally {
-      setIsMutating(false);
+      setIsDeleting(false);
     }
   };
 
@@ -181,7 +197,7 @@ export default function AdminBlogsPage() {
 
     try {
       const response = await fetch(`/api/blogs/${id}`, {
-        method: "PUT", // Keep using PUT as in original code
+        method: "PUT", 
         headers: {
           "Content-Type": "application/json",
         },
@@ -229,6 +245,41 @@ export default function AdminBlogsPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Blog Post"
+        description="Are you sure you want to delete this blog post? This action cannot be undone."
+        isDeleting={isDeleting}
+        itemDetails={
+          blogToDelete && (
+            <div className="space-y-2">
+              <div>
+                <span className="font-semibold">Title:</span> {blogToDelete.title}
+              </div>
+              <div>
+                <span className="font-semibold">Author:</span> {blogToDelete.author}
+              </div>
+              <div>
+                <span className="font-semibold">Category:</span> {blogToDelete.category}
+              </div>
+              <div>
+                <span className="font-semibold">Status:</span>{" "}
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  blogToDelete.status === "published"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-gray-100 text-gray-800"
+                }`}>
+                  {blogToDelete.status}
+                </span>
+              </div>
+            </div>
+          )
+        }
+      />
 
       {/* Main content card */}
       <Card>
@@ -403,7 +454,7 @@ export default function AdminBlogsPage() {
                               variant="ghost"
                               size="sm"
                               className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => handleDelete(blog.id)}
+                              onClick={() => openDeleteModal(blog)}
                               disabled={isMutating}
                               title="Delete Blog"
                             >
