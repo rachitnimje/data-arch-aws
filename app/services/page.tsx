@@ -12,6 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { PageLayout } from "@/components/page-layout";
+import { ServicesSection } from "@/components/home/services-section";
 
 export const metadata: Metadata = {
   title: "Services | DataArch",
@@ -179,6 +180,8 @@ export default function ServicesPage() {
         </div>
       </section>
 
+      <ServicesSection />
+
       {/* How We Work Section */}
       <section className="py-12 md:py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -217,39 +220,6 @@ export default function ServicesPage() {
                       {index + 1}
                     </span>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Expertise Section */}
-      <section className="py-16 md:py-14 bg-white/80">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 md:mb-14 opacity-0 animate-fade-up">
-              Why Choose <span className="gradient-text">DataArch</span>
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-10">
-              {expertiseFeatures.map((feature, index) => (
-                <div
-                  key={index}
-                  className={`group bg-gradient-to-br ${feature.color} p-6 md:p-8 rounded-xl shadow-sm hover:shadow-lg transition-all duration-500 opacity-0 animate-fade-up`}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="flex items-center mb-4">
-                    <div className="mr-4 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-                      {feature.icon}
-                    </div>
-                    <h3 className="text-xl font-bold group-hover:text-purple-DEFAULT transition-colors duration-300">
-                      {feature.title}
-                    </h3>
-                  </div>
-                  <div className="h-1 w-12 bg-gradient-to-r from-blue-DEFAULT to-purple-DEFAULT mb-4 group-hover:w-1/3 transition-all duration-500"></div>
-                  <p className="text-gray-700">{feature.description}</p>
-                  <div className="mt-4 w-full h-0.5 bg-white/30 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500"></div>
                 </div>
               ))}
             </div>

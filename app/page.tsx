@@ -70,7 +70,7 @@ export default function Home() {
       <Navbar />
       <HeroSection />
       <StatsSection />
-      <ServicesSection />
+      {/* <ServicesSection /> */}
       <ClientMarquee />
       <TestimonialsSection />
       <FAQSection />

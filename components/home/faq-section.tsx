@@ -11,14 +11,14 @@ const faqs = [
       "DataArch combines deep technical expertise with business acumen to deliver solutions that not only solve technical challenges but also drive measurable business outcomes. Our team of certified data architects and engineers have experience across industries, ensuring you get best practices tailored to your specific needs.",
   },
   {
-    question: "How long does a typical data transformation project take?",
+    question: "What services does DataArch offer?",
     answer:
-      "Project timelines vary based on complexity, scope, and your organization's readiness. A typical cloud migration might take 3-6 months, while implementing a comprehensive data lake solution could take 6-9 months. During our discovery phase, we'll provide a detailed timeline specific to your project with clear milestones and deliverables.",
+      "We offer end-to-end data solutions including data engineering, data analytics, cloud transformation, and automation. Our services cover data lake setup, building scalable data pipelines, advanced analytics, reporting, and machine learning implementations.",
   },
   {
-    question: "Do you work with businesses of all sizes?",
+    question: "What industries do you serve?",
     answer:
-      "Yes, we serve organizations from fast-growing startups to large enterprises. Our solutions are scalable and can be tailored to meet the specific needs and budgets of businesses at any stage of growth. We have specialized packages for small businesses looking to establish their data foundation, as well as comprehensive solutions for enterprises with complex data ecosystems.",
+      "We work across a wide range of industries including finance, healthcare, retail, manufacturing, and more. Our solutions are tailored to meet the specific data challenges of each sector.",
   },
   {
     question: "How do you ensure data security during migration and transformation?",
