@@ -18,7 +18,7 @@ A modern web application built with Next.js, Prisma ORM, AWS RDS PostgreSQL and 
 
 ## Features
 
-- **Admin Dashboard**: Manage blogs, job posts, applications, and contact submissions
+- **Admin Dashboard**: Manage blogs, job posts, applications, contact submissions and admin account creation
 - **Authentication System**: Secure login and user management
 - **Blog Management**: Create, edit, and publish blog posts
 - **Careers Portal**: Post job openings and handle applications
