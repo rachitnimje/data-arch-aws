@@ -1,4 +1,4 @@
-# Data Architecture AWS Project
+# Data Arch Website
 
 A modern web application built with Next.js, Prisma ORM, AWS RDS PostgreSQL and AWS S3. This project includes an admin panel, blog management, careers section, contact management, and more.
 
