@@ -40,28 +40,28 @@ const services = [
     description:
       "Develop robust data pipelines that automate the flow of data between systems. We design efficient ETL processes that ensure data reliability and consistency.",
     icon: <Layers className="h-12 w-12 text-green-500" />,
-    color: "from-green-50 to-green-100",
+    color: "from-blue-50 to-blue-100",
   },
   {
     title: "DATA PLATFORM MODERNIZATION",
     description:
       "In order to be data-driven, DataArch helps enterprises consolidate siloed data sources by leveraging partners and accelerators for modernization on the cloud.",
     icon: <BarChart3 className="h-12 w-12 text-orange-500" />,
-    color: "from-orange-50 to-orange-100",
+    color: "from-purple-50 to-purple-100",
   },
   {
     title: "DATA MANAGEMENT",
     description:
       "DataArch ensures that enterprise data confirm to best practices in order to meet their business objective backed by enhanced data quality and compliance adherence.",
     icon: <LineChart className="h-12 w-12 text-red-500" />,
-    color: "from-red-50 to-red-100",
+    color: "from-blue-50 to-blue-100",
   },
   {
     title: "DATA INTEGRATION",
     description:
       "Connect disparate systems and applications to create a unified data ecosystem. Our integration services ensure seamless data flow between all your business platforms.",
     icon: <Network className="h-12 w-12 text-indigo-500" />,
-    color: "from-indigo-50 to-indigo-100",
+    color: "from-purple-50 to-purple-100",
   },
 ];
 
@@ -129,7 +129,7 @@ export default function ServicesPage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-32 pb-10 md:pt-40 md:pb-14">
         <div className="container relative z-10 mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
+          <div className="max-w-6xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 opacity-0 animate-fade-up">
               Data Solutions for{" "}
               <span className="gradient-text">Modern Businesses</span>
@@ -161,7 +161,7 @@ export default function ServicesPage() {
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div
-                  className={`p-6 md:p-8 h-full flex flex-col bg-gradient-to-br ${service.color}`}
+                  className={`p-6 md:p-6 h-full flex flex-col bg-gradient-to-br ${service.color}`}
                 >
                   <div className="mb-6 transform group-hover:scale-110 transition-transform duration-500">
                     {service.icon}
