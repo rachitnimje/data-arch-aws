@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS blogs (
 
 -- Create jobs table
 CREATE TABLE IF NOT EXISTS jobs (
-  id TEXT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
   location TEXT NOT NULL,
   department TEXT NOT NULL,
