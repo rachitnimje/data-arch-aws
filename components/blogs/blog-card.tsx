@@ -21,13 +21,20 @@ export default function BlogCard({ post, index }: BlogCardProps) {
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
       <div className="relative overflow-hidden">
-        <Image
+        {/* <Image
           src={post.featured_image || "/placeholder.svg?height=400&width=600"}
           alt={post.title}
           width={600}
           height={400}
           className="w-full h-48 object-cover transition-transform duration-500 hover:scale-105"
           priority={index < 3} // Prioritize loading for the first 3 images
+        /> */}
+        <img
+          src={post.featured_image || "/placeholder.svg?height=400&width=600"}
+          alt={post.title}
+          width={600}
+          height={400}
+          className="w-full h-48 object-cover"
         />
         <div className="absolute top-4 right-4 bg-white/90 text-purple-DEFAULT px-3 py-1 rounded-full text-sm font-medium">
           {post.category}
