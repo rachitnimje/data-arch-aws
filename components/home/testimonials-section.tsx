@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useRef, useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react"
-import Image from "next/image"
+import { useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 const testimonials = [
   {
@@ -17,7 +17,7 @@ const testimonials = [
   {
     name: "Rajesh Patel",
     position: "Data Science Lead, InnovateAI Bangalore",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://cdn.expresspharma.in/wp-content/uploads/2019/05/20162957/Reji-K-Joseph-1.jpg",
     quote:
       "The AI-ready data lakes solution from DataArch has significantly accelerated our machine learning pipeline by 65%. A must-have for any AI-focused company in the Indian tech ecosystem.",
     stars: 5,
@@ -31,9 +31,10 @@ const testimonials = [
     stars: 5,
   },
   {
-    name: "Vikram Malhotra",
+    name: "John Baston",
     position: "CEO, AnalyticsFirst India",
-    image: "/placeholder.svg?height=80&width=80",
+    image:
+      "https://lh5.googleusercontent.com/proxy/eFJopI2bm4UzOYZo308_r6LMHP2z6OOxLjYTRVVfMYoHTUYfanlY_5_iAKzLjgfw2JNlKxcGYkla-035_1G2ngWS4WuTxgpCMvWiD7smXeGkisaPIBjKU0U64Dl7rNLU0A5YLYfNS9fRBPoaxcT9VXnsAWBNWg",
     quote:
       "We've partnered with DataArch for over 3 years now across our Delhi and Hyderabad offices. Their team's expertise and dedication to our success has consistently exceeded our expectations.",
     stars: 5,
@@ -41,93 +42,95 @@ const testimonials = [
   {
     name: "Meera Krishnan",
     position: "Head of Digital Transformation, Future Enterprises",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://thumbs.dreamstime.com/b/confident-indian-woman-21143788.jpg",
     quote:
       "DataArch's solutions helped us navigate the complex data challenges in our retail business. Their understanding of Indian market needs and technical expertise is truly exceptional.",
     stars: 5,
   },
-]
+];
 
 export function TestimonialsSection() {
-  const ref = useRef<HTMLDivElement>(null)
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [autoplay, setAutoplay] = useState(true)
-  const [direction, setDirection] = useState<"left" | "right">("right")
-  const [isMobile, setIsMobile] = useState(false)
+  const ref = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [autoplay, setAutoplay] = useState(true);
+  const [direction, setDirection] = useState<"left" | "right">("right");
+  const [isMobile, setIsMobile] = useState(false);
 
   // Check for mobile view on initial render and window resize
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640)
-    }
-    
+      setIsMobile(window.innerWidth < 640);
+    };
+
     // Initial check
-    checkMobile()
-    
+    checkMobile();
+
     // Add resize listener
-    window.addEventListener('resize', checkMobile)
-    
+    window.addEventListener("resize", checkMobile);
+
     // Cleanup
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Autoplay functionality
   useEffect(() => {
-    if (!autoplay) return
+    if (!autoplay) return;
 
     const interval = setInterval(() => {
-      setDirection("right")
-      setActiveIndex((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
+      setDirection("right");
+      setActiveIndex((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
 
-    return () => clearInterval(interval)
-  }, [autoplay, testimonials.length])
+    return () => clearInterval(interval);
+  }, [autoplay, testimonials.length]);
 
   // Pause autoplay on hover (only on desktop)
-  const handleMouseEnter = () => !isMobile && setAutoplay(false)
-  const handleMouseLeave = () => !isMobile && setAutoplay(true)
+  const handleMouseEnter = () => !isMobile && setAutoplay(false);
+  const handleMouseLeave = () => !isMobile && setAutoplay(true);
 
   // Touch event handling for mobile
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    setAutoplay(false)
-    setTouchStart(e.touches[0].clientX)
-  }
-  
+    setAutoplay(false);
+    setTouchStart(e.touches[0].clientX);
+  };
+
   const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (touchStart === null) return
-    
-    const touchEnd = e.changedTouches[0].clientX
-    const diff = touchStart - touchEnd
-    
+    if (touchStart === null) return;
+
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+
     if (Math.abs(diff) < 50) {
       // Ignore small movements (likely just taps)
-      setAutoplay(true)
-      return
+      setAutoplay(true);
+      return;
     }
-    
+
     if (diff > 0) {
       // Swipe left, show next
-      nextTestimonial()
+      nextTestimonial();
     } else {
       // Swipe right, show previous
-      prevTestimonial()
+      prevTestimonial();
     }
-    
-    setTouchStart(null)
-    setTimeout(() => setAutoplay(true), 3000) // Resume autoplay after swipe
-  }
+
+    setTouchStart(null);
+    setTimeout(() => setAutoplay(true), 3000); // Resume autoplay after swipe
+  };
 
   const nextTestimonial = () => {
-    setDirection("right")
-    setActiveIndex((prev) => (prev + 1) % testimonials.length)
-  }
+    setDirection("right");
+    setActiveIndex((prev) => (prev + 1) % testimonials.length);
+  };
 
   const prevTestimonial = () => {
-    setDirection("left")
-    setActiveIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
-  }
+    setDirection("left");
+    setActiveIndex(
+      (prev) => (prev - 1 + testimonials.length) % testimonials.length
+    );
+  };
 
   return (
     <section className="py-12 md:py-20" ref={ref}>
@@ -137,13 +140,14 @@ export function TestimonialsSection() {
             Hear What Our <span className="gradient-text">Clients</span> Say
           </h2>
           <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
-            Don't just take our word for it. Here's what industry leaders across India have to say about our data solutions.
+            Don't just take our word for it. Here's what industry leaders across
+            India have to say about our data solutions.
           </p>
         </div>
 
-        <div 
-          className="max-w-4xl mx-auto relative" 
-          onMouseEnter={handleMouseEnter} 
+        <div
+          className="max-w-4xl mx-auto relative"
+          onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
@@ -174,7 +178,10 @@ export function TestimonialsSection() {
                 <motion.div
                   key={activeIndex}
                   custom={direction}
-                  initial={{ opacity: 0, x: direction === "right" ? 100 : -100 }}
+                  initial={{
+                    opacity: 0,
+                    x: direction === "right" ? 100 : -100,
+                  }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: direction === "right" ? -100 : 100 }}
                   transition={{
@@ -188,8 +195,13 @@ export function TestimonialsSection() {
                   <div>
                     {/* Stars */}
                     <div className="flex items-center mb-4">
-                      {Array.from({ length: testimonials[activeIndex].stars }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 md:h-5 md:w-5 text-yellow-500 fill-yellow-500" />
+                      {Array.from({
+                        length: testimonials[activeIndex].stars,
+                      }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className="h-4 w-4 md:h-5 md:w-5 text-yellow-500 fill-yellow-500"
+                        />
                       ))}
                     </div>
 
@@ -202,8 +214,10 @@ export function TestimonialsSection() {
                   {/* User info with consistent bottom spacing */}
                   <div className="flex items-center mt-auto">
                     <div className="rounded-full overflow-hidden mr-3 md:mr-4 border-2 border-purple-light">
-                      <Image
-                        src={testimonials[activeIndex].image || "/placeholder.svg"}
+                      <img
+                        src={
+                          testimonials[activeIndex].image || "/placeholder.svg"
+                        }
                         alt={testimonials[activeIndex].name}
                         width={50}
                         height={50}
@@ -211,8 +225,12 @@ export function TestimonialsSection() {
                       />
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-800 text-base md:text-lg">{testimonials[activeIndex].name}</h4>
-                      <p className="text-xs md:text-sm text-gray-600">{testimonials[activeIndex].position}</p>
+                      <h4 className="font-bold text-gray-800 text-base md:text-lg">
+                        {testimonials[activeIndex].name}
+                      </h4>
+                      <p className="text-xs md:text-sm text-gray-600">
+                        {testimonials[activeIndex].position}
+                      </p>
                     </div>
                   </div>
                 </motion.div>
@@ -238,5 +256,5 @@ export function TestimonialsSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }

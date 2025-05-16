@@ -1,63 +1,84 @@
-"use client"
+"use client";
 
-import { useRef, useEffect } from "react"
-import { motion, useInView } from "framer-motion"
-import Image from "next/image"
+import { useRef, useEffect } from "react";
+import { motion, useInView } from "framer-motion";
+import Image from "next/image";
 
-// Sample client logos - replace with actual client logos
 const clientLogos = [
-  { name: "Client 1", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Client 2", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Client 3", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Client 4", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Client 5", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Client 6", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Client 7", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Client 8", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Client 9", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Client 10", logo: "/placeholder.svg?height=60&width=120" },
-]
+  {
+    name: "Client 1",
+    logo: "https://www.mothersontechnology.com/wp-content/uploads/2025/03/siemens-logo.png",
+  },
+  {
+    name: "Client 2",
+    logo: "https://1000logos.net/wp-content/uploads/2016/10/Barclays-Logo.jpg",
+  },
+  {
+    name: "Client 3",
+    logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTSde0eYgejkWCAwgN8tzVIUaHr1K2vR2RzQ&s",
+  },
+  {
+    name: "Client 4",
+    logo: "https://storage.googleapis.com/accesswire/logos/subaccounts/34398.png?v=1",
+  },
+  {
+    name: "Client 5",
+    logo: "https://1000logos.net/wp-content/uploads/2023/03/Tech-Data-logo.png",
+  },
+  {
+    name: "Client 6",
+    logo: "https://cdn.prod.website-files.com/63a9fb94e473f36dbe99c1b1/67869eb0cd938cd9961d9ef7_651bc8a82584d575aa063f42_3DcMFa1QseMNc6NUeX0l.jpeg",
+  },
+  {
+    name: "Client 7",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Tata_Consultancy_Services_old_logo.svg/2560px-Tata_Consultancy_Services_old_logo.svg.png",
+  },
+  {
+    name: "Client 8",
+    logo: "https://www.cdnlogo.com/logos/c/78/capgemini-201x.svg",
+  },
+];
 
 // Duplicate the array to create a seamless loop
-const duplicatedLogos = [...clientLogos, ...clientLogos]
+const duplicatedLogos = [...clientLogos, ...clientLogos];
 
 export function ClientMarquee() {
-  const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, amount: 0.2 })
-  const marqueeRef = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
+  const marqueeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const marqueeAnimation = () => {
-      if (!marqueeRef.current) return
+      if (!marqueeRef.current) return;
 
-      const marqueeElement = marqueeRef.current
-      let scrollAmount = 0
-      const speed = 0.5 // Adjust for faster/slower scrolling
+      const marqueeElement = marqueeRef.current;
+      let scrollAmount = 0;
+      const speed = 0.5; // Adjust for faster/slower scrolling
 
       const scroll = () => {
-        if (!marqueeElement) return
+        if (!marqueeElement) return;
 
-        scrollAmount += speed
+        scrollAmount += speed;
 
         // Reset when we've scrolled through half the items (to create infinite loop)
         if (scrollAmount >= marqueeElement.scrollWidth / 2) {
-          scrollAmount = 0
+          scrollAmount = 0;
         }
 
-        marqueeElement.style.transform = `translateX(-${scrollAmount}px)`
-        requestAnimationFrame(scroll)
-      }
+        marqueeElement.style.transform = `translateX(-${scrollAmount}px)`;
+        requestAnimationFrame(scroll);
+      };
 
-      const animationId = requestAnimationFrame(scroll)
+      const animationId = requestAnimationFrame(scroll);
 
-      return () => cancelAnimationFrame(animationId)
-    }
+      return () => cancelAnimationFrame(animationId);
+    };
 
-    const animation = marqueeAnimation()
+    const animation = marqueeAnimation();
     return () => {
-      if (animation) animation()
-    }
-  }, [])
+      if (animation) animation();
+    };
+  }, []);
 
   return (
     <section className="py-16 overflow-hidden" ref={ref}>
@@ -73,13 +94,16 @@ export function ClientMarquee() {
       </div>
 
       <div className="relative w-full overflow-hidden">
-        <div ref={marqueeRef} className="flex items-center space-x-12 py-6 whitespace-nowrap">
+        <div
+          ref={marqueeRef}
+          className="flex items-center space-x-12 py-6 whitespace-nowrap"
+        >
           {duplicatedLogos.map((client, index) => (
             <div
               key={index}
               className="flex-shrink-0 px-8 py-4 bg-white/80 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300"
             >
-              <Image
+              <img
                 src={client.logo || "/placeholder.svg"}
                 alt={client.name}
                 width={120}
@@ -95,5 +119,5 @@ export function ClientMarquee() {
         <div className="absolute top-0 right-0 h-full w-24 bg-gradient-to-l from-white to-transparent z-10"></div>
       </div>
     </section>
-  )
+  );
 }
